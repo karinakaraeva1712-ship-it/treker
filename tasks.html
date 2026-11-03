@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Таск-трекер — канбан</title>
+<style>
+  :root{
+    --bg:#eef1f6;
+    --panel:#ffffff;
+    --panel-2:#f7f9fc;
+    --text:#151a24;
+    --text-soft:#5b6577;
+    --text-dim:#8b95a7;
+    --line:#dde3ec;
+    --line-soft:#e8edf5;
+    --accent:#4f46e5;
+    --accent-soft:#eef0ff;
+    --shadow:0 1px 2px rgba(20,28,45,.06), 0 8px 24px -12px rgba(20,28,45,.18);
+    --shadow-lg:0 18px 50px -18px rgba(20,28,45,.35);
+    --radius:14px;
+    --col-bg:#e7ebf3;
+  }
+  body.dark{
+    --bg:#0f1116;
+    --panel:#181b22;
+    --panel-2:#1e222b;
+    --text:#e9edf5;
+    --text-soft:#a6b0c2;
+    --text-dim:#7c8598;
+    --line:#2a2f3a;
+    --line-soft:#242935;
+    --accent:#8b8cf7;
+    --accent-soft:#232544;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    --shadow-lg:0 20px 60px -20px rgba(0,0,0,.8);
+    --col-bg:#15181f;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer;border:none;background:none}
+  h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.01em}
+  ::-webkit-scrollbar{height:10px;width:10px}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:1680px;margin:0 auto;padding:18px 18px 40px}
+  header.top{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:14px 16px;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+  }
+  .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+  .logo{
+    width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;
+    background:linear-gradient(140deg,var(--accent),#c026d3);color:#fff;box-shadow:var(--shadow);
+  }
+  .brand h1{font-size:19px}
+  .brand p{margin:2px 0 0;font-size:12.5px;color:var(--text-dim)}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:9px 13px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);font-size:13.5px;font-weight:550;
+    transition:.15s;white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{filter:brightness(1.08);color:#fff}
+  .btn.ghost{background:transparent}
+  .btn.danger:hover{border-color:#e11d48;color:#e11d48}
+  .btn.icon{padding:9px 11px}
+  .btn.sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+
+  /* ---------- stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+  .stat{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px;
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .stat b{font-size:22px;font-weight:680;letter-spacing:-.02em}
+  .stat span{font-size:12px;color:var(--text-dim)}
+  .stat.warn b{color:#e11d48}
+  .stat.ok b{color:#16a34a}
+
+  /* ---------- filters ---------- */
+  .filters{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;
+  }
+  .frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .frow .label{font-size:12px;color:var(--text-dim);min-width:52px}
+  .search{
+    flex:1;min-width:200px;display:flex;align-items:center;gap:8px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 11px;
+  }
+  .search input{border:none;background:none;outline:none;flex:1;font-size:14px}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+    border:1px solid var(--line);background:var(--panel-2);font-size:12.5px;font-weight:530;
+    transition:.14s;user-select:none;
+  }
+  .chip:hover{border-color:var(--text-dim)}
+  .chip .dot{width:8px;height:8px;border-radius:50%}
+  .chip .n{font-size:11px;color:var(--text-dim)}
+  .chip.on{border-color:transparent;background:var(--accent);color:#fff}
+  .chip.on .n{color:rgba(255,255,255,.8)}
+  select.mini{
+    padding:7px 10px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);
+    font-size:13px;outline:none;
+  }
+  .switch{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-soft)}
+  .switch input{accent-color:var(--accent);width:16px;height:16px}
+
+  /* ---------- board ---------- */
+  .board{
+    display:flex;gap:14px;align-items:flex-start;margin-top:14px;
+    overflow-x:auto;padding-bottom:14px;scroll-snap-type:x proximity;
+  }
+  .column{
+    flex:0 0 306px;width:306px;background:var(--col-bg);border-radius:var(--radius);
+    display:flex;flex-direction:column;max-height:calc(100vh - 150px);
+    border:1px solid transparent;transition:.15s;scroll-snap-align:start;
+  }
+  .column.over{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .col-head{
+    display:flex;align-items:center;gap:8px;padding:11px 12px 8px;position:sticky;top:0;
+    background:var(--col-bg);border-radius:var(--radius) var(--radius) 0 0;z-index:2;
+  }
+  .col-head .bar{width:4px;height:15px;border-radius:3px}
+  .col-head h3{font-size:13.5px;letter-spacing:0;font-weight:640}
+  .col-head .count{
+    font-size:11.5px;font-weight:600;color:var(--text-soft);background:var(--panel);
+    border-radius:999px;padding:2px 8px;
+  }
+  .col-head .add{margin-left:auto;color:var(--text-dim);font-size:18px;line-height:1;padding:2px 6px;border-radius:8px}
+  .col-head .add:hover{color:var(--accent);background:var(--panel)}
+  .column-body{
+    padding:4px 10px 12px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;
+    min-height:90px;flex:1;
+  }
+  .empty{
+    border:1.5px dashed var(--line);border-radius:11px;padding:16px 10px;text-align:center;
+    font-size:12px;color:var(--text-dim);
+  }
+
+  /* ---------- card ---------- */
+  .card{
+    background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;
+    padding:11px 12px 10px;box-shadow:var(--shadow);position:relative;touch-action:pan-y;
+    border-left:4px solid var(--line);transition:box-shadow .15s, transform .1s;
+  }
+  .card:hover{box-shadow:var(--shadow-lg)}
+  .card.dragging{opacity:.35}
+  .card .title{font-size:14px;font-weight:600;line-height:1.32;word-break:break-word}
+  .card .ctx{
+    font-size:12.5px;color:var(--text-soft);margin-top:5px;white-space:pre-wrap;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .card .tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .tag{
+    font-size:11px;font-weight:600;padding:2.5px 8px;border-radius:999px;border:1px solid transparent;
+    display:inline-flex;align-items:center;gap:4px;white-space:nowrap;
+  }
+  .card .meta{
+    display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:9px;
+    padding-top:8px;border-top:1px dashed var(--line-soft);
+  }
+  .pill{
+    font-size:11px;font-weight:560;padding:2.5px 8px;border-radius:8px;
+    background:var(--panel-2);color:var(--text-soft);display:inline-flex;align-items:center;gap:4px;
+    border:1px solid var(--line-soft);
+  }
+  .pill.due-late{background:rgba(225,29,72,.12);color:#e11d48;border-color:rgba(225,29,72,.25)}
+  .pill.due-soon{background:rgba(245,158,11,.14);color:#b45309;border-color:rgba(245,158,11,.28)}
+  body.dark .pill.due-soon{color:#fbbf24}
+  .pill.due-today{background:rgba(79,70,229,.14);color:var(--accent);border-color:rgba(79,70,229,.3)}
+  .pill.done{opacity:.75}
+  .card .actions{
+    position:absolute;top:7px;right:7px;display:flex;gap:2px;opacity:0;transition:.15s;
+  }
+  .card:hover .actions,.card:focus-within .actions{opacity:1}
+  .card .actions button{
+    width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:13px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text-soft);line-height:1;
+  }
+  .card .actions button:hover{color:var(--accent);border-color:var(--accent)}
+  .card .actions button.del:hover{color:#e11d48;border-color:#e11d48}
+  .prio-line{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:11px 0 0 11px}
+  .progress{height:4px;border-radius:4px;background:var(--line-soft);overflow:hidden;margin-top:8px}
+  .progress i{display:block;height:100%;background:var(--accent);opacity:.7}
+
+  #dropIndicator{height:3px;border-radius:3px;background:var(--accent);margin:0 2px;flex:0 0 auto}
+  .drag-ghost{
+    position:fixed;z-index:80;pointer-events:none;transform:rotate(2deg) scale(1.02);
+    box-shadow:var(--shadow-lg);opacity:.96;
+  }
+  body.is-dragging{cursor:grabbing}
+  body.is-dragging .card:hover{box-shadow:var(--shadow)}
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(12,16,26,.5);backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;padding:18px;z-index:100;
+  }
+  .overlay[hidden]{display:none}
+  .modal{
+    background:var(--panel);border:1px solid var(--line);border-radius:18px;width:min(620px,100%);
+    max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);
+  }
+  .modal-head{
+    display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);
+    position:sticky;top:0;background:var(--panel);z-index:2;border-radius:18px 18px 0 0;
+  }
+  .modal-head h2{font-size:16px;margin-right:auto}
+  .modal-body{padding:16px 18px;display:flex;flex-direction:column;gap:15px}
+  .modal-foot{
+    display:flex;gap:9px;align-items:center;padding:14px 18px;border-top:1px solid var(--line-soft);
+    position:sticky;bottom:0;background:var(--panel);border-radius:0 0 18px 18px;
+  }
+  .modal-foot .spacer{flex:1}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field > label{font-size:12.5px;font-weight:600;color:var(--text-soft)}
+  .hint{font-size:11.5px;color:var(--text-dim)}
+  .field input[type=text],.field input[type=date],.field input[type=datetime-local],.field textarea,.field select{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);outline:none;transition:.15s;
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .field textarea{min-height:86px;resize:vertical;line-height:1.5}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+  .tagerow{display:flex;flex-wrap:wrap;gap:6px}
+  .prio-row{display:flex;gap:7px;flex-wrap:wrap}
+  .prio-opt{
+    flex:1;min-width:96px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);font-size:13px;font-weight:560;display:flex;align-items:center;gap:7px;justify-content:center;
+  }
+  .prio-opt .dot{width:9px;height:9px;border-radius:50%}
+  .prio-opt.on{color:#fff;border-color:transparent}
+  .suggest{
+    display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--text-dim);
+    background:var(--accent-soft);border-radius:10px;padding:8px 10px;
+  }
+  .suggest button{
+    font-size:12px;font-weight:600;color:var(--accent);background:var(--panel);
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;
+  }
+  .req{color:#e11d48}
+
+  /* ---------- теги: менеджер ---------- */
+  #tagModal{width:min(560px,100%)}
+  .tagform{display:flex;gap:8px}
+  .field .tagform .tagicon{
+    width:58px;flex:0 0 58px;text-align:center;padding:10px 6px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);outline:none;font-size:16px;
+  }
+  .field .tagform .tagname{
+    flex:1;width:auto;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);outline:none;
+  }
+  #tagKw{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);outline:none;font-size:13.5px;
+  }
+  .tagform .tagicon:focus,.tagform .tagname:focus,#tagKw:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}  .palette{display:flex;gap:7px;flex-wrap:wrap}
+  .palette button{
+    width:26px;height:26px;border-radius:50%;border:2px solid transparent;transition:.12s;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
+  }
+  .palette button.on{border-color:var(--text);transform:scale(1.15)}
+  .taglist{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;padding-right:2px}
+  .taggroup{font-size:11px;font-weight:650;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;padding:3px 2px 0}
+  .tagrow{
+    display:flex;align-items:center;gap:9px;padding:7px 9px;border:1px solid var(--line-soft);
+    border-radius:10px;background:var(--panel-2);
+  }
+  .tagrow .cnt{font-size:11.5px;color:var(--text-dim);white-space:nowrap}
+  .tagrow .grow{flex:1}
+  .tagrow .builtin{
+    font-size:11px;color:var(--text-dim);background:var(--panel);border:1px solid var(--line);
+    border-radius:999px;padding:2px 8px;
+  }
+  .tagrow .mini{
+    width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:var(--panel);
+    display:grid;place-items:center;font-size:12px;line-height:1;color:var(--text-soft);
+  }
+  .tagrow .mini:hover{color:var(--accent);border-color:var(--accent)}
+  .tagrow .mini.del:hover{color:#e11d48;border-color:#e11d48}
+  .chip.custom{border-style:dashed}
+  .chip.new{border-style:dashed;color:var(--accent);border-color:var(--accent)}
+
+  /* ---------- toast ---------- */
+  /* ---------- узкие экраны ---------- */
+  @media(max-width:700px){
+    .wrap{padding:12px 12px 30px}
+    .column{flex:0 0 84vw;width:84vw;max-height:none}
+    .board{scroll-snap-type:x mandatory}
+    .tagerow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:3px}
+    .tagerow::-webkit-scrollbar{height:0}
+    .stat b{font-size:19px}
+    .search{min-width:100%}
+    .col-head{position:static}
+  }
+
+  #toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .toast{
+    background:var(--text);color:var(--panel);padding:10px 16px;border-radius:11px;font-size:13.5px;
+    box-shadow:var(--shadow-lg);animation:pop .2s ease-out;display:flex;gap:10px;align-items:center;
+  }
+  body.dark .toast{background:#e9edf5;color:#151a24}
+  .toast button{color:inherit;text-decoration:underline;font-weight:600;font-size:13px}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">🗂️</div>
+      <div>
+        <h1>Мой таск-трекер</h1>
+        <p id="subtitle">Канбан · теги · приоритеты · дедлайны</p>
+      </div>
+    </div>
+    <button class="btn" id="btnTheme" title="Сменить тему">🌙 Тема</button>
+    <button class="btn" id="btnExport">⬇️ Экспорт</button>
+    <button class="btn" id="btnImport">⬆️ Импорт</button>
+    <button class="btn" id="btnTags" title="Мои теги: добавить, переименовать, удалить">🏷️ Теги</button>
+    <button class="btn primary" id="btnNew">＋ Новая задача</button>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="filters">
+    <div class="frow">
+      <label class="search">🔍
+        <input type="search" id="q" placeholder="Поиск по теме и контексту… (клавиша /)" autocomplete="off">
+      </label>
+      <select class="mini" id="fDue">
+        <option value="all">Любой дедлайн</option>
+        <option value="late">Просроченные</option>
+        <option value="today">Дедлайн сегодня</option>
+        <option value="week">7 дней</option>
+        <option value="none">Без дедлайна</option>
+      </select>
+      <select class="mini" id="fSort">
+        <option value="manual">Порядок: ручной</option>
+        <option value="due">Порядок: по дедлайну</option>
+        <option value="at">Порядок: по дате и времени</option>
+        <option value="prio">Порядок: по приоритету</option>
+        <option value="created">Порядок: новые сверху</option>
+      </select>
+      <label class="switch"><input type="checkbox" id="fClosed" checked> показывать закрытые</label>
+      <button class="btn sm ghost" id="btnReset">Сбросить фильтры</button>
+    </div>
+    <div class="frow">
+      <span class="label">Теги</span>
+      <div class="tagerow" id="tagFilter"></div>
+    </div>
+    <div class="frow">
+      <span class="label">Приоритет</span>
+      <div class="tagerow" id="prioFilter"></div>
+      <span class="label" style="margin-left:8px">Период</span>
+      <select class="mini" id="fPeriod">
+        <option value="all">Любой</option>
+        <option value="active">Идёт сейчас</option>
+        <option value="future">Ещё не начался</option>
+        <option value="over">Период истёк</option>
+        <option value="none">Без периода</option>
+      </select>
+      <span style="margin-left:auto"></span>
+      <button class="btn sm ghost" id="btnClearDemo" hidden>Убрать примеры</button>
+    </div>
+  </section>
+
+  <section class="board" id="board"></section>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <form class="modal" id="modal" novalidate>
+    <div class="modal-head">
+      <h2 id="modalTitle">Новая задача</h2>
+      <button type="button" class="btn icon ghost" id="btnClose" title="Закрыть (Esc)">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="fTitle">Тема <span class="req">*</span></label>
+        <input type="text" id="fTitle" placeholder="Например: записаться к стоматологу" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="fContext">Контекст</label>
+        <textarea id="fContext" placeholder="Детали, что нужно учесть, кто участвует, ссылки…"></textarea>
+      </div>
+      <div class="field">
+        <label>Теги</label>
+        <div class="tagerow" id="tagPick"></div>
+        <div class="suggest" id="suggest" hidden></div>
+      </div>
+      <div class="field">
+        <label>Приоритет</label>
+        <div class="prio-row" id="prioPick"></div>
+      </div>
+      <div class="field">
+        <label for="fStatus">Статус</label>
+        <select id="fStatus"></select>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="fFrom">Период: с</label>
+          <input type="date" id="fFrom">
+        </div>
+        <div class="field">
+          <label for="fTo">Период: по</label>
+          <input type="date" id="fTo">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="fAt">Дата и время</label>
+          <input type="datetime-local" id="fAt">
+        </div>
+        <div class="field">
+          <label for="fDue">Дедлайн</label>
+          <input type="date" id="fDueInput">
+        </div>
+      </div>
+      <div class="field">
+        <span class="hint">Все поля кроме темы — необязательные. Период = когда хочу этим заниматься, дата и время = точный момент (приём, встреча, звонок), дедлайн = к какому сроку готово.</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn danger" id="btnDelete" hidden>🗑 Удалить</button>
+      <button type="button" class="btn ghost" id="btnDuplicate" hidden>⧉ Дублировать</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn ghost" id="btnCancel">Отмена</button>
+      <button type="submit" class="btn primary" id="btnSave">Сохранить</button>
+    </div>
+  </form>
+</div>
+
+<div class="overlay" id="tagOverlay" hidden>
+  <div class="modal" id="tagModal">
+    <div class="modal-head">
+      <h2 id="tagTitle">Мои теги</h2>
+      <button type="button" class="btn icon ghost" id="tagClose" title="Закрыть (Esc)">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label id="tagFormLabel">Новый тег</label>
+        <div class="tagform">
+          <input type="text" class="tagicon" id="tagIcon" maxlength="4" placeholder="🏷" title="Эмодзи-иконка">
+          <input type="text" class="tagname" id="tagName" placeholder="Название, например «Питомцы»" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label>Цвет</label>
+        <div class="palette" id="tagPalette"></div>
+      </div>
+      <div class="field">
+        <label for="tagKw">Слова для автоподсказки</label>
+        <input type="text" id="tagKw" placeholder="кот, собак, ветеринар — через запятую (необязательно)" autocomplete="off">
+        <span class="hint">Совпадение ищется по началу слова, поэтому достаточно основы: «теплиц» найдёт и «теплица», и «теплицы».</span>
+      </div>
+      <div class="frow">
+        <button type="button" class="btn primary sm" id="tagSubmit">Добавить тег</button>
+        <button type="button" class="btn sm ghost" id="tagReset" hidden>Отмена</button>
+        <span class="hint" id="tagHint"></span>
+      </div>
+      <div class="field">
+        <div class="taglist" id="tagList"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button type="button" class="btn primary" id="tagDone">Готово</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<input type="file" id="fileInput" accept="application/json,.json" hidden>
+
+<script>
+(function(){
+  'use strict';
+
+  /* =========================================================
+     Справочники: колонки, теги, приоритеты
+     ========================================================= */
+  const COLUMNS = [
+    {id:'new',      label:'Новое',              icon:'🆕', l:'#475569', d:'#94a3b8'},
+    {id:'info',     label:'Требует информации', icon:'❓', l:'#b45309', d:'#fbbf24'},
+    {id:'progress', label:'В работе',           icon:'🔧', l:'#1d4ed8', d:'#60a5fa'},
+    {id:'hold',     label:'На стопе',           icon:'⏸️', l:'#b91c1c', d:'#f87171'},
+    {id:'done',     label:'Закончено',          icon:'✅', l:'#15803d', d:'#4ade80'},
+    {id:'rejected', label:'Отклонено',          icon:'🚫', l:'#52525b', d:'#a1a1aa'}
+  ];
+  const CLOSED = ['done','rejected'];
+
+  const TAGS = [
+    {id:'health',       label:'Здоровье',   icon:'🩺', l:'#1f9254', d:'#4ade80', kw:['врач','стоматолог','анализ','больниц','клиник','здоров','лекарств','терапевт','прививк','чекап','сон','витамин']},
+    {id:'beauty',       label:'Красота',    icon:'💄', l:'#c2185b', d:'#f472b6', kw:['маникюр','парикмахер','космет','салон','массаж','уход','брови','spa','спа','крем','макияж']},
+    {id:'work',         label:'Работа',     icon:'💼', l:'#1d4ed8', d:'#60a5fa', kw:['работ','отчёт','отчет','клиент','встреч','митинг','проект','презентац','коллег','deadline','презент','джоб','созвон','исследован']},
+    {id:'study',        label:'Обучение',   icon:'📚', l:'#6d28d9', d:'#a78bfa', kw:['курс','учеб','книг','лекц','вебинар','экзамен','тест','прочитать','изучить','школ','английск','язык','тренинг']},
+    {id:'relations',    label:'Отношение',  icon:'💞', l:'#db2777', d:'#fb7185', kw:['друг','подруг','подарок','свидан','позвонить','гости','приглаш','днюх','поздравить','встретиться']},
+    {id:'family',       label:'Семья',      icon:'👨‍👩‍👧', l:'#b45309', d:'#fbbf24', kw:['мама','папа','родител','ребен','ребён','школ','садик','муж','жена','бабушк','дедушк','семь','сестра','брат','сын','дочь']},
+    {id:'home',         label:'Дом',        icon:'🏠', l:'#0f766e', d:'#2dd4bf', kw:['уборк','ремонт','квартир','покупк','заказать','доставк','мебел','счет','счёт','платеж','платёж','коммунал','стирк','готовить','продукт','хоз']},
+    {id:'sport',        label:'Спорт',      icon:'🏃', l:'#c2410c', d:'#fb923c', kw:['трениров','зал','бег','йог','фитнес','бассейн','плава','велос','лыж','растяжк','прогулк','шаг']},
+    {id:'hobby',        label:'Хобби',      icon:'🎨', l:'#7c3aed', d:'#c084fc', kw:['рисовать','рисун','музык','фото','игра','кино','театр','концерт','шить','вязать','танц','путешеств','хобби','книг','сериал']}
+  ];
+
+  /* Палитра для пользовательских тегов: пара «светлая тема / тёмная тема» */
+  const TAG_PALETTE = [
+    {id:'green',  name:'зелёный',    l:'#1f9254', d:'#4ade80'},
+    {id:'blue',   name:'синий',      l:'#1d4ed8', d:'#60a5fa'},
+    {id:'violet', name:'фиолетовый', l:'#6d28d9', d:'#a78bfa'},
+    {id:'pink',   name:'розовый',    l:'#c2185b', d:'#f472b6'},
+    {id:'rose',   name:'алый',       l:'#db2777', d:'#fb7185'},
+    {id:'orange', name:'оранжевый',  l:'#c2410c', d:'#fb923c'},
+    {id:'amber',  name:'жёлтый',     l:'#b45309', d:'#fbbf24'},
+    {id:'teal',   name:'бирюзовый',  l:'#0f766e', d:'#2dd4bf'},
+    {id:'indigo', name:'индиго',     l:'#4f46e5', d:'#818cf8'},
+    {id:'slate',  name:'серый',      l:'#475569', d:'#94a3b8'}
+  ];
+
+  const PRIOS = [
+    {id:'urgent', label:'Срочно', color:'#a21caf', kw:['срочно','asap','сегодня же']},
+    {id:'high',   label:'Высокий', color:'#ef4444'},
+    {id:'medium', label:'Средний', color:'#f59e0b'},
+    {id:'low',    label:'Низкий',  color:'#0ea5e9'}
+  ];
+
+  const STORE = 'karina.task-tracker.v1';
+  const THEME = 'karina.task-tracker.theme';
+
+  /* =========================================================
+     Утилиты
+     ========================================================= */
+  const $  = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const uid = () => 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const isDark = () => document.body.classList.contains('dark');
+  const colById = id => COLUMNS.find(c => c.id === id) || COLUMNS[0];
+  const tagById = id => allTags().find(t => t.id === id);
+  const prioById = id => PRIOS.find(p => p.id === id) || PRIOS[2];
+  const colColor = c => isDark() ? c.d : c.l;
+  const tagColor = t => isDark() ? t.d : t.l;
+
+  function todayISO(){ const d = new Date(); return isoOf(d); }
+  function isoOf(d){
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function parseISO(s){ const [y, m, d] = String(s).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); }
+  function daysFromToday(iso){ return Math.round((parseISO(iso) - parseISO(todayISO())) / 86400000); }
+  function fmtShort(iso){
+    const d = parseISO(iso), now = new Date();
+    const s = String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0');
+    return d.getFullYear() === now.getFullYear() ? s : s + '.' + d.getFullYear();
+  }
+  function plural(n, one, few, many){
+    const a = Math.abs(n) % 100, b = a % 10;
+    if (a > 10 && a < 20) return many;
+    if (b > 1 && b < 5) return few;
+    if (b === 1) return one;
+    return many;
+  }
+  function dueInfo(iso){
+    const n = daysFromToday(iso);
+    if (n < 0)  return {cls:'due-late',  text:'просрочено на ' + Math.abs(n) + ' ' + plural(Math.abs(n), 'день', 'дня', 'дней')};
+    if (n === 0) return {cls:'due-today', text:'дедлайн сегодня'};
+    if (n === 1) return {cls:'due-soon',  text:'дедлайн завтра'};
+    if (n <= 7)  return {cls:'due-soon',  text:'через ' + n + ' ' + plural(n, 'день', 'дня', 'дней')};
+    return {cls:'', text:'до ' + fmtShort(iso)};
+  }
+  function periodState(t){
+    if (!t.from && !t.to) return 'none';
+    const today = todayISO();
+    if (t.from && today < t.from) return 'future';
+    if (t.to && today > t.to) return 'over';
+    if (!t.to) return 'active';
+    return 'active';
+  }
+  function periodText(t){
+    if (t.from && t.to) return fmtShort(t.from) + ' — ' + fmtShort(t.to);
+    if (t.from) return 'с ' + fmtShort(t.from);
+    return 'до ' + fmtShort(t.to);
+  }
+
+  /* Точный момент: 'YYYY-MM-DDTHH:MM' */
+  function momentDate(at){ return at.slice(0, 10); }
+  function momentTime(at){ return at.slice(11, 16); }
+  function fmtMoment(at){ return fmtShort(momentDate(at)) + ', ' + momentTime(at); }
+  function momentInfo(at){
+    const date = momentDate(at), time = momentTime(at), n = daysFromToday(date);
+    if (n < 0) return {cls:'due-late', text:'прошло: ' + fmtShort(date) + ', ' + time};
+    if (n === 0) return time < new Date().toTimeString().slice(0, 5)
+      ? {cls:'due-late', text:'прошло сегодня в ' + time}
+      : {cls:'due-today', text:'сегодня в ' + time};
+    if (n === 1) return {cls:'due-soon', text:'завтра в ' + time};
+    if (n <= 7)  return {cls:'due-soon', text:'через ' + n + ' ' + plural(n, 'день', 'дня', 'дней') + ' в ' + time};
+    return {cls:'', text: fmtMoment(at)};
+  }
+  function periodProgress(t){
+    if (!t.from || !t.to) return null;
+    const total = Math.round((parseISO(t.to) - parseISO(t.from)) / 86400000) + 1;
+    if (total <= 0) return null;
+    const passed = Math.round((parseISO(todayISO()) - parseISO(t.from)) / 86400000) + 1;
+    const pct = Math.max(0, Math.min(100, Math.round(passed / total * 100)));
+    return {pct, total, left: Math.max(0, total - Math.max(0, passed))};
+  }
+
+  function toast(msg, actionLabel, actionFn){
+    const box = $('#toasts');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = '<span>' + esc(msg) + '</span>';
+    if (actionLabel){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = actionLabel;
+      b.onclick = () => { actionFn && actionFn(); el.remove(); };
+      el.appendChild(b);
+    }
+    box.appendChild(el);
+    setTimeout(() => el.remove(), 4200);
+  }
+
+  /* =========================================================
+     Состояние
+     ========================================================= */
+  const state = {
+    tasks: [],
+    customTags: [],
+    filters: {q:'', tags:[], prios:[], due:'all', period:'all', sort:'manual', showClosed:true}
+  };
+
+  /* Встроенные теги + созданные пользователем */
+  function allTags(){ return TAGS.concat(state.customTags); }
+
+  function normalizeTask(raw){
+    const t = raw && typeof raw === 'object' ? raw : {};
+    const status = colById(t.status).id;
+    return {
+      id: typeof t.id === 'string' && t.id ? t.id : uid(),
+      title: String(t.title || 'Без названия').slice(0, 300),
+      context: String(t.context || ''),
+      tags: Array.isArray(t.tags) ? t.tags.filter(id => tagById(id)) : [],
+      priority: prioById(t.priority).id,
+      status: status,
+      from: /^\d{4}-\d{2}-\d{2}$/.test(t.from || '') ? t.from : '',
+      to:   /^\d{4}-\d{2}-\d{2}$/.test(t.to   || '') ? t.to   : '',
+      due:  /^\d{4}-\d{2}-\d{2}$/.test(t.due  || '') ? t.due  : '',
+      at:   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(t.at || '') ? t.at : '',
+      createdAt: Number(t.createdAt) || Date.now(),
+      updatedAt: Number(t.updatedAt) || Date.now(),
+      demo: !!t.demo
+    };
+  }
+
+  function normalizeTag(raw){
+    if (!raw || typeof raw !== 'object') return null;
+    const label = String(raw.label || '').trim().slice(0, 24);
+    if (!label) return null;
+    const pal = TAG_PALETTE.find(p => p.id === raw.color) || TAG_PALETTE[0];
+    const kw = (Array.isArray(raw.kw) ? raw.kw : String(raw.kw || '').split(','))
+      .map(k => String(k).trim().toLowerCase()).filter(Boolean).slice(0, 20);
+    const icon = Array.from(String(raw.icon || '').trim()).slice(0, 2).join('') || '🏷';
+    return {id: String(raw.id || ('c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5))),
+            label: label, icon: icon, color: pal.id, l: pal.l, d: pal.d, kw: kw, custom: true};
+  }
+
+  function normalizeTagList(list){
+    if (!Array.isArray(list)) return [];
+    const seen = {};
+    return list.map(normalizeTag).filter(t => {
+      if (!t || seen[t.id] || TAGS.some(b => b.id === t.id)) return false;
+      seen[t.id] = true;
+      return true;
+    });
+  }
+
+  function save(){
+    try {
+      localStorage.setItem(STORE, JSON.stringify({v:2, tasks: state.tasks, tags: state.customTags}));
+    } catch (e) {
+      toast('Не удалось сохранить: хранилище браузера переполнено или недоступно');
+    }
+  }
+
+  function load(){
+    let raw = null;
+    try { raw = localStorage.getItem(STORE); } catch (e) { raw = null; }
+    if (raw){
+      try {
+        const parsed = JSON.parse(raw);
+        const list = Array.isArray(parsed) ? parsed : (parsed && parsed.tasks);
+        if (Array.isArray(list)){
+          // свои теги читаем раньше задач, иначе теги задач не найдутся по id
+          state.customTags = normalizeTagList(Array.isArray(parsed) ? [] : parsed.tags);
+          state.tasks = list.map(normalizeTask);
+          return;
+        }
+      } catch (e) { /* повреждённые данные — начнём с примеров */ }
+    }
+    state.customTags = [];
+    state.tasks = demoTasks();
+    save();
+  }
+
+  function demoTasks(){
+    const d = n => isoOf(new Date(Date.now() + n * 86400000));
+    const now = Date.now();
+    return [
+      {id:uid(), title:'Пройти чекап и сдать анализы', context:'Записаться в клинику, взять направление у терапевта.', tags:['health'], priority:'high', status:'new', from:'', to:'', at:d(2) + 'T09:30', due:d(5), createdAt:now - 5000, updatedAt:now - 5000, demo:true},
+      {id:uid(), title:'Согласовать дизайн исследования с командой', context:'Нужны комментарии по анкете и роутингу до отправки в поле.', tags:['work'], priority:'urgent', status:'info', from:d(-1), to:d(2), at:d(1) + 'T15:00', due:d(1), createdAt:now - 4000, updatedAt:now - 4000, demo:true},
+      {id:uid(), title:'Курс английского — модуль 4', context:'2 занятия в неделю, по вечерам.', tags:['study','hobby'], priority:'medium', status:'progress', from:d(-10), to:d(30), due:'', createdAt:now - 3000, updatedAt:now - 3000, demo:true},
+      {id:uid(), title:'Записаться на массаж', context:'Ждём ответа от салона по свободным слотам.', tags:['beauty','health'], priority:'low', status:'hold', from:'', to:'', due:'', createdAt:now - 2000, updatedAt:now - 2000, demo:true},
+      {id:uid(), title:'Разобрать шкаф и отдать лишнее', context:'', tags:['home'], priority:'low', status:'done', from:'', to:'', due:'', createdAt:now - 1000, updatedAt:now - 1000, demo:true}
+    ].map(normalizeTask);
+  }
+
+  /* =========================================================
+     Фильтрация и сортировка
+     ========================================================= */
+  function matches(t){
+    const f = state.filters;
+    if (!f.showClosed && CLOSED.indexOf(t.status) > -1) return false;
+    if (f.q){
+      const q = f.q.toLowerCase();
+      if ((t.title + ' ' + t.context).toLowerCase().indexOf(q) === -1) return false;
+    }
+    if (f.tags.length && !t.tags.some(id => f.tags.indexOf(id) > -1)) return false;
+    if (f.prios.length && f.prios.indexOf(t.priority) === -1) return false;
+    if (f.due !== 'all'){
+      if (f.due === 'none'){ if (t.due) return false; }
+      else if (!t.due) return false;
+      else if (f.due === 'late'  && daysFromToday(t.due) >= 0) return false;
+      else if (f.due === 'today' && daysFromToday(t.due) !== 0) return false;
+      else if (f.due === 'week'  && (daysFromToday(t.due) < 0 || daysFromToday(t.due) > 7)) return false;
+    }
+    if (f.period !== 'all' && periodState(t) !== f.period) return false;
+    return true;
+  }
+
+  function sortList(list){
+    const s = state.filters.sort;
+    if (s === 'manual') return list.slice();
+    const out = list.slice();
+    if (s === 'due') out.sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
+    if (s === 'at')  out.sort((a, b) => (a.at  || '9999').localeCompare(b.at  || '9999'));
+    if (s === 'prio') out.sort((a, b) => PRIOS.findIndex(p => p.id === a.priority) - PRIOS.findIndex(p => p.id === b.priority));
+    if (s === 'created') out.sort((a, b) => b.createdAt - a.createdAt);
+    return out;
+  }
+
+  function columnTasks(status){
+    return sortList(state.tasks.filter(t => t.status === status && matches(t)));
+  }
+
+  /* =========================================================
+     Рендер: статистика, фильтры, доска
+     ========================================================= */
+  function renderStats(){
+    const all = state.tasks;
+    const active = all.filter(t => !CLOSED.includes(t.status)).length;
+    const work   = all.filter(t => t.status === 'progress').length;
+    const late   = all.filter(t => t.due && daysFromToday(t.due) < 0 && !CLOSED.includes(t.status)).length;
+    const done   = all.filter(t => t.status === 'done').length;
+    const data = [
+      ['Всего задач', all.length, ''],
+      ['Активных', active, ''],
+      ['В работе', work, ''],
+      ['Просрочено', late, late ? 'warn' : 'ok'],
+      ['Закончено', done, 'ok']
+    ];
+    $('#stats').innerHTML = data.map(d =>
+      '<div class="stat ' + d[2] + '"><b>' + d[1] + '</b><span>' + d[0] + '</span></div>'
+    ).join('');
+  }
+
+  function renderFilters(){
+    const counts = {};
+    state.tasks.forEach(t => t.tags.forEach(id => { counts[id] = (counts[id] || 0) + 1; }));
+    $('#tagFilter').innerHTML = allTags().map(t => {
+      const on = state.filters.tags.indexOf(t.id) > -1;
+      return '<button type="button" class="chip' + (on ? ' on' : '') + (t.custom ? ' custom' : '') + '" data-tag="' + t.id + '">' +
+        '<span class="dot" style="background:' + (on ? 'rgba(255,255,255,.85)' : tagColor(t)) + '"></span>' +
+        esc(t.label) + ' <span class="n">' + (counts[t.id] || 0) + '</span></button>';
+    }).join('');
+
+    const pc = {};
+    state.tasks.forEach(t => { pc[t.priority] = (pc[t.priority] || 0) + 1; });
+    $('#prioFilter').innerHTML = PRIOS.map(p => {
+      const on = state.filters.prios.indexOf(p.id) > -1;
+      return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-prio="' + p.id + '">' +
+        '<span class="dot" style="background:' + (on ? 'rgba(255,255,255,.85)' : p.color) + '"></span>' +
+        esc(p.label) + ' <span class="n">' + (pc[p.id] || 0) + '</span></button>';
+    }).join('');
+
+    $('#btnClearDemo').hidden = !state.tasks.some(t => t.demo);
+  }
+
+  function cardHTML(t){
+    const col = colById(t.status);
+    const p = prioById(t.priority);
+    const tags = t.tags.map(id => {
+      const tag = tagById(id);
+      if (!tag) return '';
+      const c = tagColor(tag);
+      return '<span class="tag" style="background:' + c + '1f;color:' + c + ';border-color:' + c + '3d">' + tag.icon + ' ' + esc(tag.label) + '</span>';
+    }).join('');
+
+    const meta = [];
+    if (t.from || t.to){
+      const ps = periodState(t);
+      const mark = ps === 'active' ? '🟢' : ps === 'future' ? '🕒' : '⚪';
+      meta.push('<span class="pill">' + mark + ' ' + esc(periodText(t)) + '</span>');
+    }
+    if (t.at){
+      const info = CLOSED.includes(t.status) ? {cls:'done', text:fmtMoment(t.at)} : momentInfo(t.at);
+      meta.push('<span class="pill ' + info.cls + '">📌 ' + esc(info.text) + '</span>');
+    }
+    if (t.due){
+      const info = CLOSED.includes(t.status) ? {cls:'done', text:'дедлайн ' + fmtShort(t.due)} : dueInfo(t.due);
+      meta.push('<span class="pill ' + info.cls + '">⏰ ' + esc(info.text) + '</span>');
+    }
+
+    const st = CLOSED.includes(t.status) ? ' style="opacity:.72"' : '';
+    const prog = !CLOSED.includes(t.status) ? periodProgress(t) : null;
+
+    return '<article class="card" data-id="' + t.id + '" tabindex="0"' + st + '>' +
+      '<span class="prio-line" style="background:' + p.color + '" title="Приоритет: ' + esc(p.label) + '"></span>' +
+      '<div class="actions">' +
+        '<button type="button" data-act="edit" title="Редактировать">✏️</button>' +
+        '<button type="button" data-act="dupe" title="Дублировать">⧉</button>' +
+        '<button type="button" class="del" data-act="del" title="Удалить">🗑</button>' +
+      '</div>' +
+      '<div class="title">' + esc(t.title) + '</div>' +
+      (t.context ? '<div class="ctx">' + esc(t.context) + '</div>' : '') +
+      (tags ? '<div class="tags">' + tags + '</div>' : '') +
+      ((meta.length || p.id !== 'medium') ? '<div class="meta">' +
+        '<span class="pill" style="color:' + p.color + ';border-color:' + p.color + '33">● ' + esc(p.label) + '</span>' +
+        meta.join('') + '</div>' : '') +
+      (prog ? '<div class="progress" title="Прошло ' + prog.pct + '% периода"><i style="width:' + prog.pct + '%"></i></div>' : '') +
+    '</article>';
+  }
+
+  function renderBoard(){
+    const board = $('#board');
+    board.innerHTML = COLUMNS.map(col => {
+      const list = columnTasks(col.id);
+      const total = state.tasks.filter(t => t.status === col.id).length;
+      const c = colColor(col);
+      const body = list.length
+        ? list.map(cardHTML).join('')
+        : '<div class="empty">Перетащите задачу сюда<br>или нажмите ＋</div>';
+      return '<section class="column" data-status="' + col.id + '">' +
+        '<div class="col-head">' +
+          '<span class="bar" style="background:' + c + '"></span>' +
+          '<h3 style="color:' + c + '">' + col.icon + ' ' + esc(col.label) + '</h3>' +
+          '<span class="count">' + list.length + (list.length !== total ? '/' + total : '') + '</span>' +
+          '<button type="button" class="add" data-add="' + col.id + '" title="Добавить в «' + esc(col.label) + '»">＋</button>' +
+        '</div>' +
+        '<div class="column-body" data-status="' + col.id + '">' + body + '</div>' +
+      '</section>';
+    }).join('');
+    const ind = document.createElement('div');
+    ind.id = 'dropIndicator';
+    ind.hidden = true;
+    board.appendChild(ind);
+  }
+
+  function render(){ renderStats(); renderFilters(); renderBoard(); }
+
+  /* =========================================================
+     Модальное окно задачи
+     ========================================================= */
+  const draft = {tags:[], priority:'medium', status:'new', id:null};
+
+  function buildModalPickers(){
+    $('#tagPick').innerHTML = allTags().map(t => {
+      const on = draft.tags.indexOf(t.id) > -1;
+      return '<button type="button" class="chip' + (on ? ' on' : '') + (t.custom ? ' custom' : '') + '" data-pick="' + t.id + '"' +
+        (on ? ' style="background:' + tagColor(t) + ';border-color:transparent;color:#fff"' : '') + '>' +
+        t.icon + ' ' + esc(t.label) + '</button>';
+    }).join('') + '<button type="button" class="chip new" data-newtag="1">＋ Новый тег</button>';
+
+    $('#prioPick').innerHTML = PRIOS.map(p => {
+      const on = draft.priority === p.id;
+      return '<button type="button" class="prio-opt' + (on ? ' on' : '') + '" data-priopick="' + p.id + '"' +
+        (on ? ' style="background:' + p.color + '"' : '') + '>' +
+        '<span class="dot" style="background:' + (on ? '#fff' : p.color) + '"></span>' + esc(p.label) + '</button>';
+    }).join('');
+
+    $('#fStatus').innerHTML = COLUMNS.map(c => '<option value="' + c.id + '">' + c.icon + ' ' + esc(c.label) + '</option>').join('');
+  }
+
+  function hideSuggest(){ $('#suggest').hidden = true; $('#suggest').innerHTML = ''; }
+
+  /* Ключевые слова сверяем по началу слова: «теплица» найдёт «теплицы», а «сон» — не «сезон» */
+  function kwStem(k){ return Array.from(String(k).trim().toLowerCase()).slice(0, 5).join(''); }
+  function textWords(text){ return text.split(/[^0-9a-zа-яё]+/i).filter(Boolean); }
+
+  function suggestTags(){
+    const text = ($('#fTitle').value + ' ' + $('#fContext').value).toLowerCase();
+    if (text.trim().length < 3){ hideSuggest(); return; }
+    const words = textWords(text);
+    const hits = allTags().filter(t => draft.tags.indexOf(t.id) === -1 && (t.kw || []).some(k => {
+      const stem = kwStem(k);
+      return stem.length >= 3 && words.some(w => w.indexOf(stem) === 0);
+    }));
+    if (!hits.length){ hideSuggest(); return; }
+    $('#suggest').hidden = false;
+    $('#suggest').innerHTML = '<span>Похоже на:</span>' + hits.slice(0, 4).map(t =>
+      '<button type="button" data-sug="' + t.id + '">' + t.icon + ' ' + esc(t.label) + ' ＋</button>'
+    ).join('');
+  }
+
+  function openModal(task, defaults){
+    const t = task || null;
+    draft.id = t ? t.id : null;
+    draft.tags = t ? t.tags.slice() : [];
+    draft.priority = t ? t.priority : 'medium';
+    draft.status = t ? t.status : (defaults && defaults.status) || 'new';
+
+    $('#modalTitle').textContent = t ? 'Задача' : 'Новая задача';
+    $('#fTitle').value = t ? t.title : '';
+    $('#fContext').value = t ? t.context : '';
+    $('#fFrom').value = t ? t.from : '';
+    $('#fTo').value = t ? t.to : '';
+    $('#fAt').value = t ? t.at : '';
+    $('#fDueInput').value = t ? t.due : '';
+    $('#btnDelete').hidden = !t;
+    $('#btnDuplicate').hidden = !t;
+    buildModalPickers();
+    $('#fStatus').value = draft.status;
+    hideSuggest();
+    $('#overlay').hidden = false;
+    setTimeout(() => $('#fTitle').focus(), 30);
+  }
+
+  function closeModal(){
+    $('#overlay').hidden = true;
+    draft.id = null;
+  }
+
+  function submitModal(){
+    const title = $('#fTitle').value.trim();
+    if (!title){
+      $('#fTitle').focus();
+      $('#fTitle').style.borderColor = '#e11d48';
+      toast('Введите тему задачи');
+      return;
+    }
+    $('#fTitle').style.borderColor = '';
+    const from = $('#fFrom').value, to = $('#fTo').value;
+    if (from && to && to < from) toast('Период: дата «по» раньше даты «с» — проверьте');
+
+    const data = {
+      title: title,
+      context: $('#fContext').value.trim(),
+      tags: draft.tags.slice(),
+      priority: draft.priority,
+      status: $('#fStatus').value,
+      from: from,
+      to: to,
+      at: $('#fAt').value,
+      due: $('#fDueInput').value,
+      updatedAt: Date.now()
+    };
+
+    if (draft.id){
+      const t = state.tasks.find(x => x.id === draft.id);
+      if (t) Object.assign(t, data);
+      toast('Задача обновлена');
+    } else {
+      state.tasks.push(normalizeTask(Object.assign({id: uid(), createdAt: Date.now()}, data)));
+      toast('Задача добавлена');
+    }
+    save(); render(); closeModal();
+  }
+
+  function deleteTask(id){
+    const t = state.tasks.find(x => x.id === id);
+    if (!t) return;
+    if (!confirm('Удалить задачу «' + t.title + '»?')) return;
+    state.tasks = state.tasks.filter(x => x.id !== id);
+    save(); render(); closeModal();
+    toast('Задача удалена');
+  }
+
+  function duplicateTask(id){
+    const t = state.tasks.find(x => x.id === id);
+    if (!t) return;
+    const copy = normalizeTask(Object.assign({}, t, {
+      id: uid(),
+      title: t.title + ' (копия)',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      demo: false
+    }));
+    const i = state.tasks.findIndex(x => x.id === id);
+    state.tasks.splice(i + 1, 0, copy);
+    save(); render();
+    toast('Создана копия задачи');
+  }
+
+  /* =========================================================
+     Drag & drop (мышь + тач)
+     ========================================================= */
+  let drag = null;
+  let raf = 0;
+
+  function onPointerDown(e){
+    if (e.button === 1 || e.button === 2) return;
+    const card = e.target.closest('.card');
+    if (!card || e.target.closest('button')) return;
+    const task = state.tasks.find(t => t.id === card.dataset.id);
+    if (!task) return;
+    const r = card.getBoundingClientRect();
+    drag = {
+      id: task.id, card: card, task: task, pid: e.pointerId,
+      sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top,
+      w: r.width, h: r.height, touch: e.pointerType === 'touch', active: false, target: null,
+      x: e.clientX, y: e.clientY
+    };
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerCancel);
+  }
+
+  function onPointerMove(e){
+    if (!drag || (e.pointerId !== undefined && e.pointerId !== drag.pid)) return;
+    drag.x = e.clientX; drag.y = e.clientY;
+    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (!drag.active){
+      if (drag.touch){
+        if (Math.abs(dx) < 14 || Math.abs(dx) <= Math.abs(dy)) return;
+      } else if (Math.hypot(dx, dy) < 6) return;
+      startDrag();
+    }
+    if (e.cancelable) e.preventDefault();
+    moveDrag(e.clientX, e.clientY);
+  }
+
+  function startDrag(){
+    drag.active = true;
+    document.body.classList.add('is-dragging');
+    drag.card.classList.add('dragging');
+    const ghost = drag.card.cloneNode(true);
+    ghost.classList.add('drag-ghost');
+    ghost.style.width = drag.w + 'px';
+    ghost.style.left = (drag.x - drag.ox) + 'px';
+    ghost.style.top = (drag.y - drag.oy) + 'px';
+    ghost.style.borderRadius = '12px';
+    ghost.style.background = getComputedStyle(document.body).getPropertyValue('--panel');
+    document.body.appendChild(ghost);
+    drag.ghost = ghost;
+    const ind = $('#dropIndicator');
+    if (ind) ind.hidden = false;
+    raf = requestAnimationFrame(tick);
+  }
+
+  function tick(){
+    if (!drag || !drag.active) return;
+    const b = $('#board').getBoundingClientRect();
+    if (drag.x < b.left + 70) $('#board').scrollLeft -= 16;
+    else if (drag.x > b.right - 70) $('#board').scrollLeft += 16;
+    if (drag.y < 80) window.scrollBy(0, -14);
+    else if (drag.y > window.innerHeight - 80) window.scrollBy(0, 14);
+    raf = requestAnimationFrame(tick);
+  }
+
+  function findTarget(x, y){
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const column = el.closest('.column');
+    if (!column) return null;
+    const body = column.querySelector('.column-body');
+    const cards = $$('.card:not(.dragging)', body);
+    let ref = null;
+    for (const c of cards){
+      const r = c.getBoundingClientRect();
+      if (y < r.top + r.height / 2){ ref = c; break; }
+    }
+    return {column: column, body: body, status: column.dataset.status, ref: ref};
+  }
+
+  function moveDrag(x, y){
+    drag.ghost.style.left = (x - drag.ox) + 'px';
+    drag.ghost.style.top = (y - drag.oy) + 'px';
+    const target = findTarget(x, y);
+    $$('.column.over').forEach(c => c.classList.remove('over'));
+    const ind = $('#dropIndicator');
+    if (!target){
+      drag.target = null;
+      if (ind){ ind.hidden = true; ind.remove(); document.body.appendChild(ind); }
+      return;
+    }
+    drag.target = target;
+    target.column.classList.add('over');
+    if (ind){
+      ind.hidden = false;
+      if (target.ref) target.body.insertBefore(ind, target.ref);
+      else target.body.appendChild(ind);
+    }
+  }
+
+  function onPointerUp(){
+    if (!drag) return;
+    const d = drag;
+    if (!d.active){ // это был клик, а не перетаскивание
+      cleanupDrag();
+      openModal(d.task);
+      return;
+    }
+    const target = d.target || findTarget(d.x, d.y);
+    cleanupDrag();
+    if (target){
+      const beforeId = target.ref ? target.ref.dataset.id : null;
+      applyMove(d.id, target.status, beforeId);
+    }
+    render();
+  }
+
+  function onPointerCancel(){ if (drag) { const re = drag.active; cleanupDrag(); if (re) render(); } }
+
+  function cleanupDrag(){
+    if (!drag) return;
+    if (drag.ghost) drag.ghost.remove();
+    drag.card.classList.remove('dragging');
+    document.body.classList.remove('is-dragging');
+    $$('.column.over').forEach(c => c.classList.remove('over'));
+    const ind = $('#dropIndicator');
+    if (ind) ind.hidden = true;
+    cancelAnimationFrame(raf);
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('pointercancel', onPointerCancel);
+    drag = null;
+  }
+
+  function applyMove(id, status, beforeId){
+    const arr = state.tasks;
+    const i = arr.findIndex(t => t.id === id);
+    if (i === -1) return;
+    const prevStatus = arr[i].status;
+    const [task] = arr.splice(i, 1);
+    task.status = colById(status).id;
+    task.updatedAt = Date.now();
+    if (beforeId && beforeId !== id){
+      const j = arr.findIndex(t => t.id === beforeId);
+      arr.splice(j === -1 ? arr.length : j, 0, task);
+    } else {
+      let last = -1;
+      arr.forEach((t, k) => { if (t.status === task.status) last = k; });
+      if (last === -1) arr.push(task); else arr.splice(last + 1, 0, task);
+    }
+    save();
+    if (prevStatus !== task.status){
+      toast('«' + task.title.slice(0, 40) + (task.title.length > 40 ? '…' : '') + '» → ' + colById(task.status).label);
+    }
+  }
+
+  /* =========================================================
+     Свои теги: создание, переименование, цвет, удаление
+     ========================================================= */
+  const tagDraft = {editId:null, color:TAG_PALETTE[0].id, fromTaskModal:false};
+
+  function renderPalette(){
+    $('#tagPalette').innerHTML = TAG_PALETTE.map(p =>
+      '<button type="button" data-pal="' + p.id + '" class="' + (tagDraft.color === p.id ? 'on' : '') + '"' +
+      ' title="' + p.name + '" style="background:' + (isDark() ? p.d : p.l) + '"></button>'
+    ).join('');
+  }
+
+  function resetTagForm(){
+    tagDraft.editId = null;
+    tagDraft.color = TAG_PALETTE[0].id;
+    $('#tagIcon').value = '';
+    $('#tagName').value = '';
+    $('#tagKw').value = '';
+    $('#tagFormLabel').textContent = 'Новый тег';
+    $('#tagSubmit').textContent = 'Добавить тег';
+    $('#tagReset').hidden = true;
+    $('#tagHint').textContent = '';
+    renderPalette();
+  }
+
+  function renderTagManager(){
+    const counts = {};
+    state.tasks.forEach(t => t.tags.forEach(id => { counts[id] = (counts[id] || 0) + 1; }));
+    const row = t => {
+      const c = tagColor(t), cnt = counts[t.id] || 0;
+      return '<div class="tagrow" data-tagrow="' + t.id + '">' +
+        '<span class="tag" style="background:' + c + '1f;color:' + c + ';border-color:' + c + '3d">' + t.icon + ' ' + esc(t.label) + '</span>' +
+        '<span class="cnt">' + (cnt ? cnt + ' ' + plural(cnt, 'задача', 'задачи', 'задач') : 'не используется') + '</span>' +
+        '<span class="grow"></span>' +
+        (t.custom
+          ? '<button type="button" class="mini" data-tagedit="' + t.id + '" title="Изменить">✏️</button>' +
+            '<button type="button" class="mini del" data-tagdel="' + t.id + '" title="Удалить">🗑</button>'
+          : '<span class="builtin">встроенный</span>') +
+      '</div>';
+    };
+    $('#tagList').innerHTML =
+      (state.customTags.length ? '<div class="taggroup">Мои теги</div>' + state.customTags.map(row).join('') : '') +
+      '<div class="taggroup">Встроенные</div>' + TAGS.map(row).join('');
+  }
+
+  function openTagManager(fromTaskModal){
+    tagDraft.fromTaskModal = !!fromTaskModal;
+    resetTagForm();
+    renderTagManager();
+    $('#tagOverlay').hidden = false;
+    setTimeout(() => $('#tagName').focus(), 30);
+  }
+
+  function closeTagManager(){ $('#tagOverlay').hidden = true; }
+
+  function editTag(id){
+    const t = state.customTags.find(x => x.id === id);
+    if (!t) return;
+    tagDraft.editId = id;
+    tagDraft.color = t.color;
+    $('#tagIcon').value = t.icon === '🏷' ? '' : t.icon;
+    $('#tagName').value = t.label;
+    $('#tagKw').value = (t.kw || []).join(', ');
+    $('#tagFormLabel').textContent = 'Изменение тега';
+    $('#tagSubmit').textContent = 'Сохранить';
+    $('#tagReset').hidden = false;
+    $('#tagHint').textContent = 'Изменения применятся ко всем задачам с этим тегом';
+    renderPalette();
+    $('#tagName').focus();
+  }
+
+  function submitTagForm(){
+    const label = $('#tagName').value.trim();
+    if (!label){ toast('Введите название тега'); $('#tagName').focus(); return; }
+    const icon = Array.from($('#tagIcon').value.trim()).slice(0, 2).join('') || '🏷';
+    const kw = $('#tagKw').value;
+    const dup = allTags().some(t => t.label.toLowerCase() === label.toLowerCase() && t.id !== tagDraft.editId);
+    if (dup){ toast('Тег с названием «' + label + '» уже есть'); return; }
+
+    if (tagDraft.editId){
+      const t = state.customTags.find(x => x.id === tagDraft.editId);
+      if (!t) return;
+      Object.assign(t, normalizeTag({id: t.id, label: label, icon: icon, color: tagDraft.color, kw: kw}));
+      save(); render(); renderTagManager(); resetTagForm();
+      toast('Тег «' + t.label + '» обновлён');
+      return;
+    }
+
+    const tag = normalizeTag({id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), label: label, icon: icon, color: tagDraft.color, kw: kw});
+    state.customTags.push(tag);
+    if (tagDraft.fromTaskModal && draft.tags.indexOf(tag.id) === -1) draft.tags.push(tag.id);
+    save(); render(); renderTagManager(); resetTagForm();
+    if (tagDraft.fromTaskModal) buildModalPickers();
+    toast('Тег «' + tag.label + '» добавлен' + (tagDraft.fromTaskModal ? ' и выбран в задаче' : ''));
+  }
+
+  function deleteTag(id){
+    const t = state.customTags.find(x => x.id === id);
+    if (!t) return;
+    const used = state.tasks.filter(x => x.tags.indexOf(id) > -1).length;
+    const tail = used ? ' Он будет снят с ' + used + ' ' + plural(used, 'задачи', 'задач', 'задач') + '.' : '';
+    if (!confirm('Удалить тег «' + t.label + '»?' + tail)) return;
+    state.customTags = state.customTags.filter(x => x.id !== id);
+    state.tasks.forEach(x => { x.tags = x.tags.filter(y => y !== id); });
+    state.filters.tags = state.filters.tags.filter(y => y !== id);
+    if (draft.tags.indexOf(id) > -1) draft.tags = draft.tags.filter(y => y !== id);
+    save(); render(); buildModalPickers(); renderTagManager();
+    toast('Тег «' + t.label + '» удалён');
+  }
+
+  /* =========================================================
+     Экспорт / импорт
+     ========================================================= */
+  function download(name, text, type){
+    const blob = new Blob([text], {type: type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportJSON(){
+    download('tasks-' + todayISO() + '.json',
+      JSON.stringify({v:2, exportedAt: new Date().toISOString(), tasks: state.tasks, tags: state.customTags}, null, 2),
+      'application/json');
+    toast('Файл JSON сохранён');
+  }
+
+  function importJSON(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      let list = null, parsed = null;
+      try {
+        parsed = JSON.parse(reader.result);
+        list = Array.isArray(parsed) ? parsed : (parsed && parsed.tasks);
+      } catch (e) { list = null; }
+      if (!Array.isArray(list)){ toast('Не удалось прочитать файл: ожидается JSON с задачами'); return; }
+      const replace = confirm('Найдено задач: ' + list.length + '.\n\nOK — заменить текущие задачи.\nОтмена — добавить к существующим.');
+      // свои теги из файла добавляем до задач, иначе теги не найдутся по id
+      const incomingTags = normalizeTagList(Array.isArray(parsed) ? [] : parsed.tags);
+      incomingTags.forEach(t => { if (!state.customTags.some(x => x.id === t.id)) state.customTags.push(t); });
+      const incoming = list.map(normalizeTask);
+      if (replace) state.tasks = incoming;
+      else {
+        const known = {};
+        state.tasks.forEach(t => { known[t.id] = true; });
+        incoming.forEach(t => { if (known[t.id]) t.id = uid(); state.tasks.push(t); });
+      }
+      save(); render();
+      const extra = incomingTags.length ? ', тегов из файла: ' + incomingTags.length : '';
+      toast('Импорт завершён: ' + incoming.length + ' ' + plural(incoming.length, 'задача', 'задачи', 'задач') + extra);
+    };
+    reader.readAsText(file);
+  }
+
+  /* =========================================================
+     События
+     ========================================================= */
+  function wire(){
+    document.addEventListener('pointerdown', onPointerDown);
+
+    $('#board').addEventListener('click', e => {
+      const add = e.target.closest('[data-add]');
+      if (add){ openModal(null, {status: add.dataset.add}); return; }
+      const btn = e.target.closest('button[data-act]');
+      const card = e.target.closest('.card');
+      if (!card) return;
+      const id = card.dataset.id;
+      if (!btn) return; // открытие карточки — по клику через drag-логику
+      const act = btn.dataset.act;
+      if (act === 'edit') openModal(state.tasks.find(t => t.id === id));
+      else if (act === 'dupe') duplicateTask(id);
+      else if (act === 'del') deleteTask(id);
+    });
+
+    $('#board').addEventListener('keydown', e => {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openModal(state.tasks.find(t => t.id === card.dataset.id)); }
+    });
+
+    $('#tagFilter').addEventListener('click', e => {
+      const b = e.target.closest('[data-tag]');
+      if (!b) return;
+      const i = state.filters.tags.indexOf(b.dataset.tag);
+      if (i > -1) state.filters.tags.splice(i, 1); else state.filters.tags.push(b.dataset.tag);
+      renderStats(); renderFilters(); renderBoard();
+    });
+
+    $('#prioFilter').addEventListener('click', e => {
+      const b = e.target.closest('[data-prio]');
+      if (!b) return;
+      const i = state.filters.prios.indexOf(b.dataset.prio);
+      if (i > -1) state.filters.prios.splice(i, 1); else state.filters.prios.push(b.dataset.prio);
+      renderStats(); renderFilters(); renderBoard();
+    });
+
+    $('#q').addEventListener('input', e => { state.filters.q = e.target.value.trim(); renderBoard(); renderStats(); });
+    $('#fDue').addEventListener('change', e => { state.filters.due = e.target.value; renderBoard(); });
+    $('#fPeriod').addEventListener('change', e => { state.filters.period = e.target.value; renderBoard(); });
+    $('#fSort').addEventListener('change', e => { state.filters.sort = e.target.value; renderBoard(); });
+    $('#fClosed').addEventListener('change', e => { state.filters.showClosed = e.target.checked; renderBoard(); renderStats(); });
+
+    $('#btnReset').addEventListener('click', () => {
+      state.filters = {q:'', tags:[], prios:[], due:'all', period:'all', sort:'manual', showClosed:true};
+      $('#q').value = ''; $('#fDue').value = 'all'; $('#fPeriod').value = 'all';
+      $('#fSort').value = 'manual'; $('#fClosed').checked = true;
+      render();
+    });
+
+    $('#btnClearDemo').addEventListener('click', () => {
+      if (!confirm('Удалить все примеры задач?')) return;
+      state.tasks = state.tasks.filter(t => !t.demo);
+      save(); render();
+      toast('Примеры удалены');
+    });
+
+    $('#btnNew').addEventListener('click', () => openModal(null));
+    $('#btnExport').addEventListener('click', exportJSON);
+    $('#btnImport').addEventListener('click', () => $('#fileInput').click());
+    $('#btnTags').addEventListener('click', () => openTagManager(false));
+    $('#fileInput').addEventListener('change', e => {
+      const f = e.target.files && e.target.files[0];
+      if (f) importJSON(f);
+      e.target.value = '';
+    });
+
+    $('#btnTheme').addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      const dark = isDark();
+      try { localStorage.setItem(THEME, dark ? 'dark' : 'light'); } catch (e) {}
+      $('#btnTheme').textContent = dark ? '☀️ Тема' : '🌙 Тема';
+      render();
+      if (!$('#tagOverlay').hidden){ renderPalette(); renderTagManager(); }
+    });
+
+    // модальное окно
+    $('#modal').addEventListener('submit', e => { e.preventDefault(); submitModal(); });
+    $('#btnClose').addEventListener('click', closeModal);
+    $('#btnCancel').addEventListener('click', closeModal);
+    $('#overlay').addEventListener('mousedown', e => { if (e.target === $('#overlay')) closeModal(); });
+    $('#fStatus').addEventListener('change', e => { draft.status = e.target.value; });
+    $('#tagPick').addEventListener('click', e => {
+      if (e.target.closest('[data-newtag]')){ openTagManager(true); return; }
+      const b = e.target.closest('[data-pick]');
+      if (!b) return;
+      const i = draft.tags.indexOf(b.dataset.pick);
+      if (i > -1) draft.tags.splice(i, 1); else draft.tags.push(b.dataset.pick);
+      buildModalPickers(); suggestTags();
+    });
+    $('#prioPick').addEventListener('click', e => {
+      const b = e.target.closest('[data-priopick]');
+      if (!b) return;
+      draft.priority = b.dataset.priopick;
+      buildModalPickers();
+    });
+    $('#suggest').addEventListener('click', e => {
+      const b = e.target.closest('[data-sug]');
+      if (!b) return;
+      if (draft.tags.indexOf(b.dataset.sug) === -1) draft.tags.push(b.dataset.sug);
+      buildModalPickers(); suggestTags();
+    });
+    $('#fTitle').addEventListener('input', () => { $('#fTitle').style.borderColor = ''; suggestTags(); });
+    $('#fContext').addEventListener('input', suggestTags);
+    $('#btnDelete').addEventListener('click', () => { if (draft.id) deleteTask(draft.id); });
+    $('#btnDuplicate').addEventListener('click', () => { if (draft.id){ duplicateTask(draft.id); closeModal(); } });
+
+    // менеджер тегов
+    $('#tagClose').addEventListener('click', closeTagManager);
+    $('#tagDone').addEventListener('click', closeTagManager);
+    $('#tagOverlay').addEventListener('mousedown', e => { if (e.target === $('#tagOverlay')) closeTagManager(); });
+    $('#tagPalette').addEventListener('click', e => {
+      const b = e.target.closest('[data-pal]');
+      if (!b) return;
+      tagDraft.color = b.dataset.pal;
+      renderPalette();
+    });
+    $('#tagSubmit').addEventListener('click', submitTagForm);
+    $('#tagReset').addEventListener('click', resetTagForm);
+    $('#tagName').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); submitTagForm(); } });
+    $('#tagKw').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); submitTagForm(); } });
+    $('#tagList').addEventListener('click', e => {
+      const ed = e.target.closest('[data-tagedit]');
+      const del = e.target.closest('[data-tagdel]');
+      if (ed) editTag(ed.dataset.tagedit);
+      else if (del) deleteTag(del.dataset.tagdel);
+    });
+
+    document.addEventListener('keydown', e => {
+      const inModal = !$('#overlay').hidden, inTags = !$('#tagOverlay').hidden;
+      if (e.key === 'Escape' && inTags){ closeTagManager(); return; }
+      if (e.key === 'Escape' && inModal){ closeModal(); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && inModal && !inTags){ e.preventDefault(); submitModal(); return; }
+      if (!inModal && !inTags && e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA'){
+        e.preventDefault(); $('#q').focus();
+      }
+      if (!inModal && !inTags && (e.key === 'n' || e.key === 'N') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA'){
+        e.preventDefault(); openModal(null);
+      }
+    });
+  }
+
+  /* =========================================================
+     Старт
+     ========================================================= */
+  function init(){
+    try {
+      if (localStorage.getItem(THEME) === 'dark'
+        || (!localStorage.getItem(THEME) && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+        document.body.classList.add('dark');
+        $('#btnTheme').textContent = '☀️ Тема';
+      }
+    } catch (e) {}
+    load();
+    buildModalPickers();
+    wire();
+    render();
+    $('#subtitle').textContent = 'Канбан · 6 статусов · теги и приоритеты · данные хранятся в этом браузере';
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Трекер 80 → 60 кг · до 23.02.2027</title>
+<title>Жизнь Каришки</title>
 <style>
   :root{
     --bg:#f4f6f4; --card:#ffffff; --ink:#17201c; --muted:#66756e;
@@ -167,6 +167,37 @@
   .over{color:var(--bad)}
   .hidden{display:none !important}
 
+  /* привычки */
+  .hab-form{display:grid;grid-template-columns:1fr 78px 112px auto;gap:8px;margin:12px 0 4px}
+  .hab-form input,.hab-form select{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg);color:var(--ink);min-width:0}
+  .hab-list{display:grid;gap:10px;margin-top:12px}
+  .hab{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .hab-top{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .hab-icon{font-size:18px;flex:none}
+  .hab-name{font-weight:600;font-size:15px;flex:1;min-width:0}
+  .hab-val{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .hab-val b{color:var(--ink);font-size:17px}
+  .hab-bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .hab-bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s}
+  .hab-actions{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .step{min-width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+    color:var(--ink);font-size:16px;cursor:pointer;line-height:1}
+  .step:hover{border-color:var(--accent);color:var(--accent)}
+  .step.plus{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;padding:0 14px;font-size:14px}
+  .hab-actions select,.hab-actions input{font:inherit;font-size:13px;padding:7px 8px;border:1px solid var(--line);
+    border-radius:9px;background:var(--card);color:var(--ink)}
+  .hab-actions input{width:58px;text-align:right}
+  .hab-del{margin-left:auto;background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:8px}
+  .hab-del:hover{color:var(--bad)}
+  .hab-week{display:grid;gap:6px;overflow-x:auto}
+  .hw-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(7,32px);gap:6px;align-items:center;font-size:13px;min-width:340px}
+  .hw-name{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hw-cell{height:30px;border-radius:8px;background:var(--bg);border:1px solid var(--line);display:flex;
+    align-items:center;justify-content:center;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .hw-cell.full{background:var(--accent-weak);border-color:transparent;color:var(--accent-ink);font-weight:600}
+  .hw-head{font-size:10.5px;text-align:center;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+
   @media (max-width:620px){
     .stats{grid-template-columns:repeat(2,1fr)}
     .stat b{font-size:26px}
@@ -176,6 +207,9 @@
     .dow,.days{gap:4px}
     .ex{padding:15px}
     .ex-panels{grid-template-columns:1fr}
+    .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+    .tab{flex:0 0 auto;padding:9px 13px;font-size:13px}
+    .hab-form{grid-template-columns:1fr 1fr}
   }
 </style>
 </head>
@@ -183,12 +217,14 @@
 <div class="wrap">
 
   <header>
-    <h1>80 → 60 кг</h1>
-    <p class="sub">Старт 2 ноября 2026 · финиш 23 февраля 2027 · ориентир к финишу ≈ 69–70 кг</p>
+    <h1>Жизнь Каришки</h1>
+    <p class="sub">Трекер 80 → 60 кг · старт 2 ноября 2026 · финиш 23 февраля 2027</p>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Разделы">
     <button class="tab on" type="button" data-view="tracker" role="tab">Трекер</button>
+    <button class="tab" type="button" data-view="habits" role="tab">Привычки</button>
+    <button class="tab" type="button" data-view="tasks" role="tab">Задачи</button>
     <button class="tab" type="button" data-view="ex" role="tab">Упражнения</button>
     <button class="tab" type="button" data-view="food" role="tab">Питание</button>
   </nav>
@@ -246,6 +282,40 @@
     </table>
   </section>
 
+  </section>
+
+  <section id="view-habits" hidden>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Привычки · <span id="habDate"></span></h2>
+        <button class="ghost" id="habAddBtn" type="button">+ привычка</button>
+      </div>
+      <div class="hab-form hidden" id="habForm">
+        <input id="habName" type="text" placeholder="Например: 20 минут английского" aria-label="Название привычки">
+        <input id="habTarget" type="text" inputmode="numeric" value="1" aria-label="Цель">
+        <select id="habPeriod" aria-label="Период">
+          <option value="day">в день</option>
+          <option value="week">в неделю</option>
+          <option value="month">в месяц</option>
+        </select>
+        <button class="btn" id="habSave" type="button">Добавить</button>
+      </div>
+      <div id="habList" class="hab-list"></div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-bottom:12px">Последние 7 дней</h2>
+      <div id="habWeek" class="hab-week"></div>
+      <p class="hint" style="margin:12px 0 0">Клетка — сколько отмечено за день. Зелёная — цель дня закрыта.</p>
+    </section>
+  </section>
+
+  <section id="view-tasks" hidden>
+    <section class="card" style="padding:0;overflow:hidden">
+      <iframe id="tasksFrame" src="tasks.html" title="Таск-трекер"
+        style="width:100%;height:calc(100vh - 230px);min-height:560px;border:0;display:block;background:transparent"></iframe>
+    </section>
   </section>
 
   <section id="view-ex" hidden>
@@ -757,13 +827,35 @@
     </section>
 
     <section class="card">
-      <h2 style="margin-bottom:10px">Спина и осанка — 15 минут (четверг)</h2>
-      <p class="hint" style="margin:0">
-        <b>Y-T-W</b> лёжа на животе, 3×10: руки вытянуты вперёд-вверх — буква <b>Y</b>; руки в стороны — буква <b>T</b>;
-        локти согнуты, лопатки сведены — буква <b>W</b>. В каждой букве поднимаешь руки и грудь, лопатки тянешь к позвоночнику, шея — продолжение спины.<br>
-        Дальше: «лодочка» 3×12 → «кошка-корова» 10 циклов → растяжка груди в дверном проёме 2×30 секунд.<br>
-        Это комплекс для осанки, а не для жиросжигания: он помогает спине не ныть от сидячей работы.
-      </p>
+      <h2 style="margin-bottom:10px">Тренировка на спину — 20 минут</h2>
+      <p class="hint" style="margin:0 0 12px">Отдельный блок для спины и осанки: можно делать в четверг вместо мобильности или добавлять к пятёрке. Нужны коврик, стул и рюкзак.</p>
+      <table class="week">
+        <tbody>
+          <tr><td>3 мин</td><td>Разминка: «кошка-корова» 10 циклов, круги плечами, наклоны корпуса</td></tr>
+          <tr><td>3×10–12</td><td>Тяга рюкзака в наклоне — спина прямая, тянешь локтями назад</td></tr>
+          <tr><td>3×10</td><td>Y-T-W лёжа на животе — по 10 на каждую букву, лопатки к позвоночнику</td></tr>
+          <tr><td>3×12</td><td>«Лодочка» — грудь и ноги вверх, пауза 2 секунды</td></tr>
+          <tr><td>3×12</td><td>Тяга к поясу — резинка или рюкзак, локоть идёт назад</td></tr>
+          <tr><td>3×20–30 сек</td><td>Планка на коленях — линия от колен до макушки</td></tr>
+        </tbody>
+      </table>
+      <p class="hint" style="margin:12px 0 0">Отдых между подходами 60–90 секунд. <b>Как усложнять:</b> тяжелее рюкзак → пауза 2 сек в верхней точке → больше повторов. Делать 1–2 раза в неделю; если спина ноет от сидячей работы — этот блок важнее, чем ещё один подход приседаний.</p>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-bottom:10px">Растяжка — 10 минут</h2>
+      <p class="hint" style="margin:0 0 12px">После тренировки, вечером или в день без силовой. Правило одно: до лёгкого натяжения, а не до боли; дышать ровно и не пружинить.</p>
+      <table class="week">
+        <tbody>
+          <tr><td>2×30 сек</td><td>Грудь в дверном проёме — предплечье на косяк, корпус чуть вперёд</td></tr>
+          <tr><td>2×30 сек</td><td>Наклон к ногам сидя — тянешься грудью, а не головой</td></tr>
+          <tr><td>30 сек ×2</td><td>Сгибатель бедра — выпад на колено, таз вперёд</td></tr>
+          <tr><td>30 сек ×2</td><td>Ягодицы лёжа («четвёрка») — стопа на колено другой ноги</td></tr>
+          <tr><td>30 сек ×2</td><td>Шея — мягкий наклон в сторону, плечо вниз</td></tr>
+          <tr><td>10 циклов</td><td>«Кошка-корова» в конце — чтобы спина «отпустила»</td></tr>
+        </tbody>
+      </table>
+      <p class="hint" style="margin:12px 0 0">Растяжку можно делать каждый день — она не заменяет силовые и не требует восстановления. Хорошее время — перед сном: заодно легче заснуть.</p>
     </section>
 
     <section class="card">
@@ -849,6 +941,14 @@
     ["2027-02-01",71.5],["2027-02-08",70.9],["2027-02-15",70.2],["2027-02-23",69.5]
   ];
 
+  var DEFAULT_HABITS = [
+    {id:"sudoku", icon:"🎯", title:"Победить в судоку",  target:10, period:"week"},
+    {id:"chess",  icon:"♟️", title:"Партии в шахматы",    target:3,  period:"week"},
+    {id:"book",   icon:"📖", title:"Страницы книги",      target:30, period:"day"},
+    {id:"skin",   icon:"🧴", title:"Уход за кожей",       target:1,  period:"day"},
+    {id:"teeth",  icon:"🦷", title:"Уход за зубами",      target:1,  period:"day"}
+  ];
+
   var storageOK = true;
 
   function iso(y,m,d){ return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0"); }
@@ -879,6 +979,10 @@
       weights: p.weights || {},
       food: p.food || {},
       myFood: Array.isArray(p.myFood) ? p.myFood : [],
+      habitsList: (Array.isArray(p.habitsList) && p.habitsList.length)
+        ? p.habitsList
+        : DEFAULT_HABITS.map(function(h){ return {id:h.id, icon:h.icon, title:h.title, target:h.target, period:h.period}; }),
+      habitLog: p.habitLog || {},
       goal: Number(p.goal) > 0 ? Number(p.goal) : 1600
     };
   }
@@ -939,6 +1043,7 @@
     renderCalendar();
     updateStats();
     renderFood();
+    renderHabits();
   }
 
   function renderToday(){
@@ -1471,6 +1576,149 @@
       : found.n + " · " + found.k + " ккал на 100 г";
   }
 
+  // ---------- привычки ----------
+  function habitCount(id, d){ var row = state.habitLog[d]; return (row && row[id]) || 0; }
+
+  function habitChange(id, d, delta){
+    var cur = habitCount(id, d) + delta;
+    if(cur < 0) cur = 0;
+    state.habitLog[d] = state.habitLog[d] || {};
+    if(cur === 0) delete state.habitLog[d][id]; else state.habitLog[d][id] = cur;
+    save(); renderHabits();
+  }
+
+  function habitRange(period, d){
+    var base = parseISO(d), list = [], i;
+    if(period === "day") return [d];
+    if(period === "month"){
+      var y = base.getFullYear(), m = base.getMonth();
+      var last = new Date(y, m+1, 0).getDate();
+      for(i=1;i<=last;i++) list.push(iso(y, m+1, i));
+      return list;
+    }
+    var shift = (base.getDay() + 6) % 7;
+    var mon = new Date(base); mon.setDate(base.getDate() - shift);
+    for(i=0;i<7;i++){
+      var dd = new Date(mon); dd.setDate(mon.getDate() + i);
+      list.push(iso(dd.getFullYear(), dd.getMonth()+1, dd.getDate()));
+    }
+    return list;
+  }
+
+  function habitProgress(h, d){
+    return habitRange(h.period, d).reduce(function(s, x){ return s + habitCount(h.id, x); }, 0);
+  }
+
+  function periodLabel(p){ return p === "day" ? "за день" : (p === "week" ? "за неделю" : "за месяц"); }
+
+  function periodOptions(cur){
+    return ["day","week","month"].map(function(p){
+      return '<option value="'+p+'"'+(p === cur ? ' selected' : '')+'>'+periodLabel(p)+'</option>';
+    }).join("");
+  }
+
+  function renderHabits(){
+    var d = parseISO(today);
+    var names = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+    document.getElementById("habDate").textContent = d.getDate()+" "+MONTHS_GEN[d.getMonth()]+", "+names[d.getDay()];
+
+    var box = document.getElementById("habList");
+    box.innerHTML = "";
+    state.habitsList.forEach(function(h, idx){
+      var val = habitProgress(h, today);
+      var target = h.target || 1;
+      var pct = Math.min(100, Math.round(val / target * 100));
+      var el = document.createElement("div");
+      el.className = "hab" + (val >= target ? " done" : "");
+      el.dataset.idx = String(idx);
+      el.innerHTML =
+        '<div class="hab-top"><span class="hab-icon">'+esc(h.icon||"•")+'</span>'+
+        '<span class="hab-name">'+esc(h.title)+'</span>'+
+        '<span class="hab-val"><b>'+val+'</b> / '+target+'</span></div>'+
+        '<div class="hab-bar"><i style="width:'+pct+'%"></i></div>'+
+        '<div class="hab-actions">'+
+          '<button class="step" type="button" data-act="minus" aria-label="Минус один">−</button>'+
+          '<button class="step plus" type="button" data-act="plus">+1</button>'+
+          '<select data-act="period" aria-label="Период">'+periodOptions(h.period)+'</select>'+
+          '<input data-act="target" type="text" inputmode="numeric" value="'+target+'" title="цель за период" aria-label="Цель">'+
+          '<button class="hab-del" type="button" data-act="del" title="удалить">✕</button>'+
+        '</div>';
+      box.appendChild(el);
+    });
+
+    renderHabitWeek();
+  }
+
+  function renderHabitWeek(){
+    var box = document.getElementById("habWeek");
+    var days = [], i, base = parseISO(today);
+    for(i=6;i>=0;i--){ var dd = new Date(base); dd.setDate(base.getDate()-i); days.push(iso(dd.getFullYear(), dd.getMonth()+1, dd.getDate())); }
+
+    var head = '<div class="hw-row"><div class="hw-name"></div>' + days.map(function(x){
+      return '<div class="hw-head">'+parseISO(x).getDate()+'</div>';
+    }).join("") + '</div>';
+
+    var rows = state.habitsList.map(function(h){
+      var target = h.target || 1;
+      var cells = days.map(function(x){
+        var v = habitCount(h.id, x);
+        var full = v > 0 && (h.period === "day" ? v >= target : true);
+        return '<div class="hw-cell'+(full ? ' full' : '')+'">'+(v > 0 ? (h.period === "day" ? v : "✓") : "·")+'</div>';
+      }).join("");
+      return '<div class="hw-row"><div class="hw-name">'+esc(h.icon||"")+' '+esc(h.title)+'</div>'+cells+'</div>';
+    }).join("");
+
+    box.innerHTML = head + rows;
+  }
+
+  document.getElementById("habList").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-act]");
+    if(!btn) return;
+    var row = btn.closest(".hab");
+    if(!row) return;
+    var h = state.habitsList[Number(row.dataset.idx)];
+    if(!h) return;
+    if(btn.dataset.act === "plus") return habitChange(h.id, today, 1);
+    if(btn.dataset.act === "minus") return habitChange(h.id, today, -1);
+    if(btn.dataset.act === "del"){
+      if(!confirm("Удалить привычку «" + h.title + "»?")) return;
+      state.habitsList = state.habitsList.filter(function(x){ return x.id !== h.id; });
+      save(); renderHabits();
+    }
+  });
+
+  document.getElementById("habList").addEventListener("change", function(e){
+    var el = e.target;
+    var row = el.closest(".hab");
+    if(!row) return;
+    var h = state.habitsList[Number(row.dataset.idx)];
+    if(!h) return;
+    if(el.dataset.act === "period"){ h.period = el.value; save(); renderHabits(); }
+    else if(el.dataset.act === "target"){
+      h.target = Math.max(1, Math.round(num(el.value) || 1));
+      save(); renderHabits();
+    }
+  });
+
+  document.getElementById("habAddBtn").addEventListener("click", function(){
+    var f = document.getElementById("habForm");
+    f.classList.toggle("hidden");
+    if(!f.classList.contains("hidden")) document.getElementById("habName").focus();
+  });
+
+  document.getElementById("habSave").addEventListener("click", function(){
+    var name = document.getElementById("habName").value.trim();
+    if(!name) return;
+    var target = Math.max(1, Math.round(num(document.getElementById("habTarget").value) || 1));
+    var period = document.getElementById("habPeriod").value;
+    state.habitsList.push({id:"h"+Date.now(), icon:"⭐", title:name, target:target, period:period});
+    save();
+    document.getElementById("habName").value = "";
+    document.getElementById("habTarget").value = "1";
+    document.getElementById("habForm").classList.add("hidden");
+    renderHabits();
+  });
+
   // ---------- события дневника ----------
   (function initFood(){
     var dl = document.getElementById("foodList");
@@ -1549,7 +1797,7 @@
 
   // ---------- вкладки ----------
   var tabButtons = Array.prototype.slice.call(document.querySelectorAll(".tab"));
-  var views = { tracker: document.getElementById("view-tracker"), ex: document.getElementById("view-ex"), food: document.getElementById("view-food") };
+  var views = { tracker: document.getElementById("view-tracker"), habits: document.getElementById("view-habits"), tasks: document.getElementById("view-tasks"), ex: document.getElementById("view-ex"), food: document.getElementById("view-food") };
 
   function showView(name, updateUrl){
     if(!views[name]) name = "tracker";
@@ -1574,6 +1822,7 @@
   renderWeights();
   updateStats();
   renderFood();
+  renderHabits();
   showView((location.hash || "").slice(1), false);
 
   // если вкладка осталась открытой через полночь — сами переходим на новый день
