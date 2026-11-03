@@ -147,6 +147,10 @@
   .ex-panel .thin line,.ex-panel .thin path{stroke-width:8}
   .ex-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0 0}
   .ex-grid .cap{padding-top:4px}
+  .filters{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+  .filters .chip{font-size:13px;padding:8px 13px}
+  .filters .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .filters .cnt{opacity:.65;font-variant-numeric:tabular-nums}
 
   /* дневник еды */
   .food-form{display:grid;grid-template-columns:1fr 100px auto;gap:8px;margin:12px 0 0}
@@ -340,6 +344,13 @@
         Усложняешь только тогда, когда 2 подхода по 10–12 идут легко.
         В конце — круг на 15 минут для дней без прогулки и комплекс для спины.</p>
     </section>
+
+    <div class="filters" id="exFilters">
+      <button class="chip on" type="button" data-filter="all">Все <span class="cnt"></span></button>
+      <button class="chip" type="button" data-filter="func">Функционал <span class="cnt"></span></button>
+      <button class="chip" type="button" data-filter="back">Для спины <span class="cnt"></span></button>
+      <button class="chip" type="button" data-filter="stretch">Растяжка <span class="cnt"></span></button>
+    </div>
 
     <article class="ex">
       <div class="ex-head"><h2>1. Вставание со стула</h2><span class="ex-tag">ноги · 2×8</span></div>
@@ -1904,6 +1915,55 @@
     });
   })();
 
+  // ---------- фильтр упражнений ----------
+  var EX_CAT = {1:"func",2:"func",3:"func",4:"back",5:"func",6:"back",7:"func",8:"func",9:"func",10:"back"};
+
+  function initExerciseFilters(){
+    var root = document.getElementById("view-ex");
+    if(!root) return;
+
+    root.querySelectorAll(".ex").forEach(function(el){
+      var h = el.querySelector("h2");
+      var n = h ? parseInt(h.textContent, 10) : 0;
+      if(EX_CAT[n]) el.setAttribute("data-cat", EX_CAT[n]);
+    });
+
+    root.querySelectorAll(".card").forEach(function(el){
+      if(el.parentElement !== root) return;
+      var h2 = el.querySelector("h2");
+      var t = h2 ? h2.textContent : "";
+      if(t.indexOf("Круг на 15 минут") > -1) el.setAttribute("data-cat", "func");
+      else if(t.indexOf("Тренировка на спину") > -1) el.setAttribute("data-cat", "back");
+      else if(t.indexOf("Растяжка") > -1) el.setAttribute("data-cat", "stretch");
+    });
+
+    var counts = {all:0, func:0, back:0, stretch:0};
+    root.querySelectorAll("[data-cat]").forEach(function(el){
+      var c = el.getAttribute("data-cat");
+      if(counts[c] !== undefined){ counts[c]++; counts.all++; }
+    });
+    root.querySelectorAll("#exFilters .chip").forEach(function(b){
+      var span = b.querySelector(".cnt");
+      var c = b.getAttribute("data-filter");
+      if(span) span.textContent = counts[c] ? String(counts[c]) : "";
+    });
+  }
+
+  function applyExerciseFilter(cat){
+    var root = document.getElementById("view-ex");
+    root.querySelectorAll("#exFilters .chip").forEach(function(b){
+      b.classList.toggle("on", b.getAttribute("data-filter") === cat);
+    });
+    root.querySelectorAll("[data-cat]").forEach(function(el){
+      el.hidden = (cat !== "all" && el.getAttribute("data-cat") !== cat);
+    });
+  }
+
+  document.getElementById("exFilters").addEventListener("click", function(e){
+    var b = e.target.closest(".chip");
+    if(b) applyExerciseFilter(b.getAttribute("data-filter"));
+  });
+
   // ---------- вкладки ----------
   var tabButtons = Array.prototype.slice.call(document.querySelectorAll(".tab"));
   var views = { tracker: document.getElementById("view-tracker"), habits: document.getElementById("view-habits"), tasks: document.getElementById("view-tasks"), ex: document.getElementById("view-ex"), food: document.getElementById("view-food") };
@@ -1939,6 +1999,7 @@
   updateStats();
   renderFood();
   renderHabits();
+  initExerciseFilters();
   showView((location.hash || "").slice(1), false);
 
   // если вкладка осталась открытой через полночь — сами переходим на новый день
