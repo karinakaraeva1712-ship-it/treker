@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Жизнь Каришки</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f6b4f'/%3E%3Ctext x='32' y='46' font-family='-apple-system,Segoe UI,Roboto,sans-serif' font-size='40' font-weight='700' fill='%23ffffff' text-anchor='middle'%3E%D0%9A%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2f6b4f">
 <style>
   :root{
     --bg:#f4f6f4; --card:#ffffff; --ink:#17201c; --muted:#66756e;
@@ -140,6 +143,9 @@
   .ex-panel .arrowhead-bad{fill:var(--badline)}
   .ex-panel .lbl{font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--muted)}
   .ex-panel .lbl-bad{font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--badline)}
+  .ex-panel .thin line,.ex-panel .thin path{stroke-width:8}
+  .ex-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0 0}
+  .ex-grid .cap{padding-top:4px}
 
   /* дневник еды */
   .food-form{display:grid;grid-template-columns:1fr 100px auto;gap:8px;margin:12px 0 0}
@@ -207,6 +213,7 @@
     .dow,.days{gap:4px}
     .ex{padding:15px}
     .ex-panels{grid-template-columns:1fr}
+    .ex-grid{grid-template-columns:1fr}
     .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
     .tab{flex:0 0 auto;padding:9px 13px;font-size:13px}
     .hab-form{grid-template-columns:1fr 1fr}
@@ -840,6 +847,38 @@
         </tbody>
       </table>
       <p class="hint" style="margin:12px 0 0">Отдых между подходами 60–90 секунд. <b>Как усложнять:</b> тяжелее рюкзак → пауза 2 сек в верхней точке → больше повторов. Делать 1–2 раза в неделю; если спина ноет от сидячей работы — этот блок важнее, чем ещё один подход приседаний.</p>
+      <div class="ex-grid" style="grid-template-columns:1fr">
+        <div class="ex-panel">
+          <svg viewBox="0 0 300 160" role="img" aria-label="Y-T-W лёжа на животе: вид сверху — руки в форме Y, T и W">
+            <g class="body thin">
+              <line x1="60" y1="34" x2="60" y2="86"/>
+              <line x1="60" y1="86" x2="49" y2="114"/>
+              <line x1="60" y1="86" x2="71" y2="114"/>
+              <line x1="60" y1="42" x2="40" y2="14"/>
+              <line x1="60" y1="42" x2="80" y2="14"/>
+              <line x1="150" y1="34" x2="150" y2="86"/>
+              <line x1="150" y1="86" x2="139" y2="114"/>
+              <line x1="150" y1="86" x2="161" y2="114"/>
+              <line x1="150" y1="42" x2="120" y2="42"/>
+              <line x1="150" y1="42" x2="180" y2="42"/>
+              <line x1="240" y1="34" x2="240" y2="86"/>
+              <line x1="240" y1="86" x2="229" y2="114"/>
+              <line x1="240" y1="86" x2="251" y2="114"/>
+              <line x1="240" y1="42" x2="223" y2="60"/>
+              <line x1="223" y1="60" x2="234" y2="36"/>
+              <line x1="240" y1="42" x2="257" y2="60"/>
+              <line x1="257" y1="60" x2="246" y2="36"/>
+            </g>
+            <circle class="head" cx="60" cy="24" r="10"/>
+            <circle class="head" cx="150" cy="24" r="10"/>
+            <circle class="head" cx="240" cy="24" r="10"/>
+            <text class="lbl" x="60" y="142" text-anchor="middle">Y</text>
+            <text class="lbl" x="150" y="142" text-anchor="middle">T</text>
+            <text class="lbl" x="240" y="142" text-anchor="middle">W</text>
+          </svg>
+          <div class="cap">Y-T-W · вид сверху</div>
+        </div>
+      </div>
     </section>
 
     <section class="card">
@@ -850,11 +889,75 @@
           <tr><td>2×30 сек</td><td>Грудь в дверном проёме — предплечье на косяк, корпус чуть вперёд</td></tr>
           <tr><td>2×30 сек</td><td>Наклон к ногам сидя — тянешься грудью, а не головой</td></tr>
           <tr><td>30 сек ×2</td><td>Сгибатель бедра — выпад на колено, таз вперёд</td></tr>
-          <tr><td>30 сек ×2</td><td>Ягодицы лёжа («четвёрка») — стопа на колено другой ноги</td></tr>
+          <tr><td>30 сек ×2</td><td>Ягодицы лёжа — подтягиваешь колено к груди, вторая нога прямая</td></tr>
           <tr><td>30 сек ×2</td><td>Шея — мягкий наклон в сторону, плечо вниз</td></tr>
           <tr><td>10 циклов</td><td>«Кошка-корова» в конце — чтобы спина «отпустила»</td></tr>
         </tbody>
       </table>
+      <div class="ex-grid">
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Растяжка груди в дверном проёме: предплечье на косяке">
+            <line class="ground" x1="16" y1="142" x2="166" y2="142"/>
+            <line class="prop" x1="30" y1="10" x2="30" y2="142"/>
+            <line class="prop" x1="30" y1="10" x2="56" y2="10"/>
+            <g class="body thin">
+              <line x1="92" y1="140" x2="90" y2="100"/>
+              <line x1="90" y1="100" x2="88" y2="62"/>
+              <line x1="88" y1="62" x2="86" y2="28"/>
+              <line x1="86" y1="34" x2="64" y2="46"/>
+              <line x1="64" y1="46" x2="32" y2="46"/>
+            </g>
+            <circle class="head" cx="84" cy="16" r="10"/>
+          </svg>
+          <div class="cap">Грудь в проёме</div>
+        </div>
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Наклон к ногам сидя">
+            <line class="ground" x1="16" y1="134" x2="166" y2="134"/>
+            <g class="body thin">
+              <line x1="54" y1="130" x2="86" y2="132"/>
+              <line x1="86" y1="132" x2="118" y2="132"/>
+              <line x1="54" y1="130" x2="84" y2="104"/>
+              <line x1="84" y1="106" x2="114" y2="130"/>
+            </g>
+            <circle class="head" cx="100" cy="94" r="9"/>
+          </svg>
+          <div class="cap">Наклон к ногам</div>
+        </div>
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Растяжка сгибателя бедра: выпад на колено">
+            <line class="ground" x1="16" y1="134" x2="166" y2="134"/>
+            <g class="body thin">
+              <line x1="68" y1="130" x2="46" y2="136"/>
+              <line x1="96" y1="96" x2="68" y2="130"/>
+              <line x1="96" y1="96" x2="128" y2="98"/>
+              <line x1="128" y1="98" x2="134" y2="132"/>
+              <line x1="96" y1="96" x2="94" y2="52"/>
+            </g>
+            <circle class="head" cx="92" cy="36" r="10"/>
+            <path class="arrow" d="M104 92 L120 88"/>
+            <path class="arrowhead" d="M116 84 l8 4 -8 4 z"/>
+          </svg>
+          <div class="cap">Сгибатель бедра</div>
+        </div>
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Растяжка ягодиц лёжа: колено к груди">
+            <line class="ground" x1="16" y1="136" x2="166" y2="136"/>
+            <g class="body thin">
+              <line x1="52" y1="124" x2="104" y2="126"/>
+              <line x1="104" y1="126" x2="134" y2="128"/>
+              <line x1="134" y1="128" x2="160" y2="130"/>
+              <line x1="104" y1="126" x2="92" y2="100"/>
+              <line x1="92" y1="100" x2="112" y2="108"/>
+              <line x1="52" y1="124" x2="74" y2="114"/>
+              <line x1="74" y1="114" x2="90" y2="106"/>
+            </g>
+            <circle class="head" cx="34" cy="122" r="10"/>
+          </svg>
+          <div class="cap">Ягодицы лёжа</div>
+        </div>
+      </div>
+
       <p class="hint" style="margin:12px 0 0">Растяжку можно делать каждый день — она не заменяет силовые и не требует восстановления. Хорошее время — перед сном: заодно легче заснуть.</p>
     </section>
 

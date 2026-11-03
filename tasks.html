@@ -6,35 +6,37 @@
 <title>Таск-трекер — канбан</title>
 <style>
   :root{
-    --bg:#eef1f6;
+    --bg:#f4f6f4;
     --panel:#ffffff;
-    --panel-2:#f7f9fc;
-    --text:#151a24;
-    --text-soft:#5b6577;
-    --text-dim:#8b95a7;
-    --line:#dde3ec;
-    --line-soft:#e8edf5;
-    --accent:#4f46e5;
-    --accent-soft:#eef0ff;
-    --shadow:0 1px 2px rgba(20,28,45,.06), 0 8px 24px -12px rgba(20,28,45,.18);
-    --shadow-lg:0 18px 50px -18px rgba(20,28,45,.35);
-    --radius:14px;
-    --col-bg:#e7ebf3;
+    --panel-2:#f7f9f7;
+    --text:#17201c;
+    --text-soft:#66756e;
+    --text-dim:#8d9a93;
+    --line:#e1e6e2;
+    --line-soft:#e9eee9;
+    --accent:#2f6b4f;
+    --accent-2:#5fbf8e;
+    --accent-soft:#e4f1e9;
+    --shadow:0 1px 2px rgba(20,28,25,.05), 0 8px 24px -12px rgba(20,28,25,.16);
+    --shadow-lg:0 18px 50px -18px rgba(20,28,25,.3);
+    --radius:16px;
+    --col-bg:#eaefea;
   }
   body.dark{
-    --bg:#0f1116;
-    --panel:#181b22;
-    --panel-2:#1e222b;
-    --text:#e9edf5;
-    --text-soft:#a6b0c2;
-    --text-dim:#7c8598;
-    --line:#2a2f3a;
-    --line-soft:#242935;
-    --accent:#8b8cf7;
-    --accent-soft:#232544;
+    --bg:#111513;
+    --panel:#1a201d;
+    --panel-2:#1f2622;
+    --text:#e8efea;
+    --text-soft:#93a29b;
+    --text-dim:#6f7d76;
+    --line:#2a332e;
+    --line-soft:#232b27;
+    --accent:#63c08f;
+    --accent-2:#2f6b4f;
+    --accent-soft:#1e3a2b;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
     --shadow-lg:0 20px 60px -20px rgba(0,0,0,.8);
-    --col-bg:#15181f;
+    --col-bg:#161b18;
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
@@ -63,7 +65,7 @@
   .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
   .logo{
     width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;
-    background:linear-gradient(140deg,var(--accent),#c026d3);color:#fff;box-shadow:var(--shadow);
+    background:linear-gradient(140deg,var(--accent),var(--accent-2));color:#fff;box-shadow:var(--shadow);
   }
   .brand h1{font-size:19px}
   .brand p{margin:2px 0 0;font-size:12.5px;color:var(--text-dim)}
@@ -184,7 +186,7 @@
   .pill.due-late{background:rgba(225,29,72,.12);color:#e11d48;border-color:rgba(225,29,72,.25)}
   .pill.due-soon{background:rgba(245,158,11,.14);color:#b45309;border-color:rgba(245,158,11,.28)}
   body.dark .pill.due-soon{color:#fbbf24}
-  .pill.due-today{background:rgba(79,70,229,.14);color:var(--accent);border-color:rgba(79,70,229,.3)}
+  .pill.due-today{background:rgba(47,107,79,.13);color:var(--accent);border-color:rgba(47,107,79,.3)}
   .pill.done{opacity:.75}
   .card .actions{
     position:absolute;top:7px;right:7px;display:flex;gap:2px;opacity:0;transition:.15s;
