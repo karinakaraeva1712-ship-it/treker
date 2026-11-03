@@ -323,6 +323,12 @@
       <iframe id="tasksFrame" src="tasks.html" title="Таск-трекер"
         style="width:100%;height:calc(100vh - 230px);min-height:560px;border:0;display:block;background:transparent"></iframe>
     </section>
+    <section class="card hidden" id="tasksFallback" style="text-align:center;padding:28px 20px">
+      <p class="hint" style="margin:0 0 16px">Браузер не показывает канбан внутри локального файла — так устроен Chrome.
+        Открой его отдельной вкладкой:</p>
+      <a class="btn" href="tasks.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Открыть таск-трекер</a>
+      <p class="hint" style="margin:16px 0 0">На сайте <b>karinakaraeva1712-ship-it.github.io/treker</b> канбан открывается прямо в этой вкладке.</p>
+    </section>
   </section>
 
   <section id="view-ex" hidden>
@@ -1906,6 +1912,13 @@
     if(!views[name]) name = "tracker";
     Object.keys(views).forEach(function(k){ views[k].hidden = (k !== name); });
     tabButtons.forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-view") === name); });
+    if(name === "tasks"){
+      var frame = document.getElementById("tasksFrame");
+      var fallback = document.getElementById("tasksFallback");
+      var blocked = location.protocol === "file:";
+      if(frame) frame.classList.toggle("hidden", blocked);
+      if(fallback) fallback.classList.toggle("hidden", !blocked);
+    }
     if(updateUrl){
       try { history.replaceState(null, "", "#" + name); }
       catch(e){ location.hash = name; }
