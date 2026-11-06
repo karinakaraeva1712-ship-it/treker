@@ -161,11 +161,17 @@
   .btn:active{transform:scale(.98)}
   .food-form .wide{grid-column:1 / -1}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
   .remember{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin-top:2px}
   .remember input{width:16px;height:16px;accent-color:var(--accent);margin:0}
   .mine{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
   .mine-lbl{font-size:12px;color:var(--muted)}
-  .mine-chip{border-style:dashed;color:var(--ink)}
+  .mine-chip{display:inline-flex;align-items:stretch;border:1px dashed var(--line);border-radius:99px;overflow:hidden;background:transparent}
+  .mine-chip button{border:0;background:transparent;font:inherit;font-size:12.5px;color:var(--ink);cursor:pointer;padding:6px 10px}
+  .mine-chip .mine-add:hover{color:var(--accent)}
+  .mine-chip .mine-del{color:var(--muted);border-left:1px dashed var(--line);padding:6px 10px}
+  .mine-chip .mine-del:hover{color:var(--bad);background:var(--bg)}
+  .mine-chip b{color:var(--muted);font-weight:600;margin-left:2px}
   .chip{font:inherit;font-size:12.5px;padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:.15s}
   .chip:hover{border-color:var(--accent);color:var(--accent)}
   .food-table{margin-top:14px}
@@ -1184,7 +1190,8 @@
       <p class="hint" id="foodPreview" style="margin:8px 0 0"></p>
 
       <div class="chips" id="foodChips"></div>
-      <div class="mine hidden" id="foodMine"><span class="mine-lbl">мои продукты:</span><span id="foodMineList"></span></div>
+      <button class="chip" id="foodNewBtn" type="button" style="margin-top:8px">＋ свой продукт</button>
+      <div class="mine hidden" id="foodMine"><span class="mine-lbl">мои продукты — тап добавляет, ✕ убирает:</span><span id="foodMineList"></span></div>
 
       <table class="food-table">
         <thead><tr><th>Продукт</th><th class="num">Граммы</th><th class="num">Ккал</th><th></th></tr></thead>
@@ -1778,19 +1785,48 @@
     box.classList.toggle("hidden", mine.length === 0);
     list.innerHTML = "";
     mine.forEach(function(f, i){
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "chip mine-chip";
-      b.innerHTML = esc(f.n) + " <span aria-hidden='true'>✕</span>";
-      b.title = f.k + " ккал на 100 г · нажми, чтобы убрать из списка";
-      b.addEventListener("click", function(){
+      var wrap = document.createElement("span");
+      wrap.className = "chip mine-chip";
+
+      var add = document.createElement("button");
+      add.type = "button";
+      add.className = "mine-add";
+      add.innerHTML = esc(f.n) + " <b>" + Math.round(f.k) + "</b>";
+      add.title = f.k + " ккал на 100 г — нажми, чтобы добавить в дневник";
+      add.addEventListener("click", function(){ addFromMine(f); });
+
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "mine-del";
+      del.innerHTML = "✕";
+      del.title = "убрать из моих продуктов";
+      del.addEventListener("click", function(e){
+        e.stopPropagation();
         state.myFood.splice(i, 1);
         save();
         buildFoodList();
         renderFood();
       });
-      list.appendChild(b);
+
+      wrap.appendChild(add);
+      wrap.appendChild(del);
+      list.appendChild(wrap);
     });
+  }
+
+  function addFromMine(f){
+    var gEl = document.getElementById("foodGrams");
+    var nameEl = document.getElementById("foodName");
+    var g = num(gEl.value);
+    if(g > 0){
+      addFood(f.n, g, f.k, f.p, f.f, f.c);
+      gEl.value = "";
+      nameEl.value = "";
+    } else {
+      nameEl.value = f.n;
+      nameEl.dispatchEvent(new Event("input", { bubbles: true }));
+      gEl.focus();
+    }
   }
 
   function num(v){ return Number(String(v).replace(",", ".")); }
@@ -1843,24 +1879,32 @@
     updateFoodPreview();
   }
 
+  var manualMode = false;
+
   function updateFoodPreview(){
     var name = document.getElementById("foodName").value;
     var grams = num(document.getElementById("foodGrams").value);
     var kcalEl = document.getElementById("foodKcal");
+    var remWrap = document.getElementById("foodRememberWrap");
     var found = findFood(name);
     var pv = document.getElementById("foodPreview");
 
-    if(!name.trim()){ pv.textContent = ""; kcalEl.classList.add("hidden"); document.getElementById("foodRememberWrap").classList.add("hidden"); return; }
-    if(!found){
+    if(!name.trim()){
+      pv.textContent = manualMode ? "Напиши название и калорийность на 100 г — продукт сохранится в «мои продукты»." : "";
+      if(!manualMode){ kcalEl.classList.add("hidden"); remWrap.classList.add("hidden"); }
+      return;
+    }
+    if(!found || manualMode){
       kcalEl.classList.remove("hidden");
-      document.getElementById("foodRememberWrap").classList.remove("hidden");
+      remWrap.classList.remove("hidden");
       var manual = num(kcalEl.value);
       if(manual > 0 && grams > 0) pv.textContent = "≈ " + Math.round(manual*grams/100) + " ккал";
+      else if(manual > 0) pv.textContent = name.trim() + " · " + manual + " ккал на 100 г";
       else pv.textContent = "Такого продукта нет в списке — впиши калорийность на 100 г.";
       return;
     }
     kcalEl.classList.add("hidden");
-    document.getElementById("foodRememberWrap").classList.add("hidden");
+    remWrap.classList.add("hidden");
     kcalEl.value = "";
     pv.textContent = grams > 0
       ? found.n + " · " + grams + " г ≈ " + Math.round(found.k*grams/100) + " ккал"
@@ -2053,13 +2097,27 @@
       }
       if(ok){
         nameEl.value = ""; gEl.value = ""; kEl.value = "";
+        manualMode = false;
+        document.getElementById("foodNewBtn").classList.remove("on");
         kEl.classList.add("hidden");
+        document.getElementById("foodRememberWrap").classList.add("hidden");
         updateFoodPreview();
         nameEl.focus();
       }
     }
 
     document.getElementById("foodAdd").addEventListener("click", addFromForm);
+    document.getElementById("foodNewBtn").addEventListener("click", function(){
+      manualMode = !manualMode;
+      var kEl = document.getElementById("foodKcal");
+      var rem = document.getElementById("foodRememberWrap");
+      this.classList.toggle("on", manualMode);
+      kEl.classList.toggle("hidden", !manualMode);
+      rem.classList.toggle("hidden", !manualMode);
+      if(!manualMode){ kEl.value = ""; }
+      document.getElementById("foodName").focus();
+      updateFoodPreview();
+    });
     document.getElementById("foodGrams").addEventListener("keydown", function(e){ if(e.key === "Enter") addFromForm(); });
     document.getElementById("foodName").addEventListener("input", updateFoodPreview);
     document.getElementById("foodGrams").addEventListener("input", updateFoodPreview);
