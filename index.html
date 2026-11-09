@@ -145,6 +145,8 @@
   .ex-panel .lbl{font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--muted)}
   .ex-panel .lbl-bad{font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--badline)}
   .ex-panel .thin line,.ex-panel .thin path{stroke-width:8}
+  .ex-panel .db line{stroke:var(--fig);stroke-width:4;stroke-linecap:round}
+  .ex-panel .db circle{fill:var(--fig)}
   .ex-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0 0}
   .ex-grid .cap{padding-top:4px}
   .filters{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
@@ -358,6 +360,7 @@
       <button class="chip" type="button" data-filter="stretch">Растяжка <span class="cnt"></span></button>
       <button class="chip" type="button" data-filter="mfr">МФР <span class="cnt"></span></button>
       <button class="chip" type="button" data-filter="bands">С резинкой <span class="cnt"></span></button>
+      <button class="chip" type="button" data-filter="dumbbells">С гантелями <span class="cnt"></span></button>
     </div>
 
     <article class="ex">
@@ -1153,6 +1156,110 @@
       <p class="hint" style="margin:14px 0 0"><b>Правила:</b> крепи резинку за что-то неподвижное (ножка стола, батарея, дверная ручка) и проверь натяжением до подхода.
         Нагрузка регулируется длиной: короче или сложить вдвое — тяжелее. На пике задерживайся на 2 секунды, возвращай медленно за 3.
         <b>Проверяй резинку:</b> треснувшая или с надрывом рвётся внезапно и в лицо — такую сразу выкидывай.</p>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-bottom:10px">Упражнения с гантелями — 25 минут</h2>
+      <p class="hint" style="margin:0 0 12px">Хватит одной пары разборных гантелей 2–10 кг. Веса ниже — стартовые для новичка;
+        если 12 повторов даются легко, бери следующую пару.</p>
+      <table class="week">
+        <tbody>
+          <tr><td>3×10–12</td><td>Гоблет-присед — гантель у груди, колени над стопами · 6–8 кг</td></tr>
+          <tr><td>3×10</td><td>Румынская тяга — таз назад, спина прямая, гантели вдоль ног · 2×4–6 кг</td></tr>
+          <tr><td>3×8–10</td><td>Жим лёжа на полу — локти под углом 45°, поясница прижата · 2×4 кг</td></tr>
+          <tr><td>3×10–12</td><td>Тяга в наклоне — локоть идёт назад, лопатка к позвоночнику · 2×4–6 кг</td></tr>
+          <tr><td>2×12</td><td>Махи в стороны — локти чуть согнуты, поднимаешь до уровня плеч · 2×2 кг</td></tr>
+          <tr><td>3×10</td><td>Выпады с гантелями — шаг назад, корпус вертикально · 2×4 кг</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ex-grid">
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Гоблет-присед с гантелью у груди">
+            <line class="ground" x1="14" y1="140" x2="168" y2="140"/>
+            <g class="body thin">
+              <line x1="96" y1="138" x2="98" y2="106"/>
+              <line x1="98" y1="106" x2="94" y2="76"/>
+              <line x1="94" y1="76" x2="96" y2="42"/>
+              <line x1="96" y1="46" x2="112" y2="68"/>
+              <line x1="112" y1="68" x2="101" y2="56"/>
+            </g>
+            <g class="db">
+              <line x1="102" y1="50" x2="102" y2="64"/>
+              <circle cx="102" cy="48" r="4.5"/>
+              <circle cx="102" cy="66" r="4.5"/>
+            </g>
+            <circle class="head" cx="96" cy="24" r="9"/>
+          </svg>
+          <div class="cap">Гоблет-присед</div>
+        </div>
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Румынская тяга с гантелями">
+            <line class="ground" x1="14" y1="140" x2="168" y2="140"/>
+            <g class="body thin">
+              <line x1="100" y1="138" x2="100" y2="108"/>
+              <line x1="100" y1="108" x2="96" y2="82"/>
+              <line x1="96" y1="82" x2="126" y2="54"/>
+              <line x1="126" y1="54" x2="128" y2="98"/>
+            </g>
+            <g class="db">
+              <line x1="116" y1="100" x2="140" y2="100"/>
+              <circle cx="114" cy="100" r="4.5"/>
+              <circle cx="142" cy="100" r="4.5"/>
+            </g>
+            <circle class="head" cx="138" cy="48" r="9"/>
+            <path class="guide" d="M104 76 L140 72"/>
+          </svg>
+          <div class="cap">Румынская тяга</div>
+        </div>
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Жим гантелей лёжа на полу">
+            <line class="ground" x1="14" y1="134" x2="168" y2="134"/>
+            <g class="body thin">
+              <line x1="70" y1="122" x2="120" y2="124"/>
+              <line x1="120" y1="124" x2="146" y2="98"/>
+              <line x1="146" y1="98" x2="152" y2="128"/>
+              <line x1="70" y1="120" x2="76" y2="100"/>
+              <line x1="76" y1="100" x2="78" y2="82"/>
+            </g>
+            <g class="db">
+              <line x1="68" y1="80" x2="88" y2="80"/>
+              <circle cx="66" cy="80" r="4.5"/>
+              <circle cx="90" cy="80" r="4.5"/>
+            </g>
+            <circle class="head" cx="54" cy="118" r="9"/>
+          </svg>
+          <div class="cap">Жим на полу</div>
+        </div>
+        <div class="ex-panel">
+          <svg viewBox="0 0 180 150" role="img" aria-label="Махи гантелями в стороны">
+            <line class="ground" x1="14" y1="140" x2="168" y2="140"/>
+            <g class="body thin">
+              <line x1="90" y1="32" x2="90" y2="80"/>
+              <line x1="90" y1="80" x2="80" y2="112"/>
+              <line x1="80" y1="112" x2="78" y2="138"/>
+              <line x1="90" y1="80" x2="100" y2="112"/>
+              <line x1="100" y1="112" x2="102" y2="138"/>
+              <line x1="78" y1="44" x2="52" y2="62"/>
+              <line x1="102" y1="44" x2="128" y2="62"/>
+            </g>
+            <g class="db">
+              <line x1="48" y1="62" x2="56" y2="64"/>
+              <circle cx="46" cy="62" r="4.5"/>
+              <circle cx="58" cy="64" r="4.5"/>
+              <line x1="124" y1="64" x2="132" y2="62"/>
+              <circle cx="122" cy="64" r="4.5"/>
+              <circle cx="134" cy="62" r="4.5"/>
+            </g>
+            <circle class="head" cx="90" cy="20" r="9"/>
+          </svg>
+          <div class="cap">Махи в стороны</div>
+        </div>
+      </div>
+
+      <p class="hint" style="margin:14px 0 0"><b>Техника важнее веса.</b> Спина прямая в тягах и наклонах, колени не заваливаются внутрь в приседе,
+        поясница прижата к полу в жиме. Если тянет поясницу — вес велик или спина круглая.
+        Разборные гантели удобны тем, что шаг всего 1,25–2,5 кг: именно такими шагами и растут веса у новичка.</p>
     </section>
 
     <section class="card">
@@ -2166,9 +2273,10 @@
       else if(t.indexOf("Растяжка") > -1) el.setAttribute("data-cat", "stretch");
       else if(t.indexOf("МФР") > -1) el.setAttribute("data-cat", "mfr");
       else if(t.indexOf("с резинкой") > -1) el.setAttribute("data-cat", "bands");
+      else if(t.indexOf("с гантелями") > -1) el.setAttribute("data-cat", "dumbbells");
     });
 
-    var counts = {all:0, func:0, back:0, stretch:0, mfr:0, bands:0};
+    var counts = {all:0, func:0, back:0, stretch:0, mfr:0, bands:0, dumbbells:0};
     root.querySelectorAll("[data-cat]").forEach(function(el){
       var c = el.getAttribute("data-cat");
       if(counts[c] !== undefined){ counts[c]++; counts.all++; }
