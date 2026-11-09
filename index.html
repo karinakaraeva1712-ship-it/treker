@@ -14,6 +14,7 @@
     --line:#e1e6e2; --accent:#2f6b4f; --accent-weak:#e4f1e9; --accent-ink:#1f5036;
     --bad:#b4553c; --good:#2f6b4f; --radius:16px;
     --fig:#1d2723; --fig-soft:#556a5f; --guide:#a9b7af; --prop:#bcc7c0; --badline:#b4553c;
+    --period:#f7e2e6; --period-ink:#a4394c; --heart:#c0566a;
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -21,6 +22,7 @@
       --line:#2a332e; --accent:#63c08f; --accent-weak:#1e3a2b; --accent-ink:#bfe7d2;
       --bad:#d9856c; --good:#63c08f;
       --fig:#e8efea; --fig-soft:#8ea79b; --guide:#5c6a63; --prop:#46534d; --badline:#d9856c;
+      --period:#3a2227; --period-ink:#f0a8b6; --heart:#e08a9c;
     }
   }
   *{box-sizing:border-box}
@@ -154,6 +156,25 @@
   .filters .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
   .filters .cnt{opacity:.65;font-variant-numeric:tabular-nums}
 
+  /* цикл */
+  .cyc-nav{display:flex;gap:6px;align-items:center}
+  .cyc-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+  .cyc-dow span{text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .cyc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cyc-day{position:relative;min-height:46px;border:1px solid var(--line);background:var(--card);border-radius:10px;
+    font:inherit;font-size:14px;font-variant-numeric:tabular-nums;color:inherit;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;transition:.15s}
+  .cyc-day:hover{border-color:var(--accent)}
+  .cyc-day.other{opacity:.3;cursor:default}
+  .cyc-day.today{outline:2px solid var(--accent);outline-offset:1px}
+  .cyc-day.period{background:var(--period);border-color:transparent;color:var(--period-ink);font-weight:600}
+  .cyc-day.predicted:not(.period){border-style:dashed;border-color:var(--period-ink);opacity:.8}
+  .cyc-day .hrt{font-size:10px;line-height:1;color:var(--heart)}
+  .cyc-row{display:flex;justify-content:space-between;gap:12px;font-size:14.5px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .cyc-row:last-child{border-bottom:0}
+  .cyc-row span:first-child{color:var(--muted)}
+  .cyc-row b{font-variant-numeric:tabular-nums;text-align:right}
+
   /* дневник еды */
   .food-form{display:grid;grid-template-columns:1fr 100px auto;gap:8px;margin:12px 0 0}
   .food-form input{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0}
@@ -244,6 +265,7 @@
     <button class="tab on" type="button" data-view="tracker" role="tab">Трекер</button>
     <button class="tab" type="button" data-view="habits" role="tab">Привычки</button>
     <button class="tab" type="button" data-view="tasks" role="tab">Задачи</button>
+    <button class="tab" type="button" data-view="cycle" role="tab">Цикл</button>
     <button class="tab" type="button" data-view="ex" role="tab">Упражнения</button>
     <button class="tab" type="button" data-view="food" role="tab">Питание</button>
   </nav>
@@ -330,8 +352,7 @@
     </section>
   </section>
 
-  <section id="view-tasks" hidden>
-    <section class="card" style="padding:0;overflow:hidden">
+  <section id="view-tasks" hidden>    <section class="card" style="padding:0;overflow:hidden">
       <iframe id="tasksFrame" src="tasks.html" title="Таск-трекер"
         style="width:100%;height:calc(100vh - 230px);min-height:560px;border:0;display:block;background:transparent"></iframe>
     </section>
@@ -341,6 +362,39 @@
       <a class="btn" href="tasks.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Открыть таск-трекер</a>
       <p class="hint" style="margin:16px 0 0">На сайте <b>karinakaraeva1712-ship-it.github.io/treker</b> канбан открывается прямо в этой вкладке.</p>
     </section>
+  </section>
+
+  <section id="view-cycle" hidden>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span id="cycMonth"></span></h2>
+        <div class="cyc-nav">
+          <button class="ghost" id="cycPrev" type="button" aria-label="Предыдущий месяц">‹</button>
+          <button class="ghost" id="cycToday" type="button">сегодня</button>
+          <button class="ghost" id="cycNext" type="button" aria-label="Следующий месяц">›</button>
+        </div>
+      </div>
+
+      <div class="filters" id="cycModes" style="margin:12px 0 14px">
+        <button class="chip on" type="button" data-mode="period">Месячные</button>
+        <button class="chip" type="button" data-mode="heart">♥ день</button>
+      </div>
+
+      <div class="cyc-dow">
+        <span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>вс</span>
+      </div>
+      <div class="cyc-grid" id="cycGrid"></div>
+
+      <p class="hint" style="margin:12px 0 0">Тап по дню отмечает и снимает: в режиме «Месячные» — красным,
+        в режиме «♥ день» — сердечком. Можно ставить и то и другое в один день.</p>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-bottom:12px">Что по циклу</h2>
+      <div id="cycStats"></div>
+    </section>
+
   </section>
 
   <section id="view-ex" hidden>
@@ -1384,6 +1438,10 @@
       weights: p.weights || {},
       food: p.food || {},
       myFood: Array.isArray(p.myFood) ? p.myFood : [],
+      cycle: {
+        periods: (p.cycle && p.cycle.periods) || {},
+        hearts: (p.cycle && p.cycle.hearts) || {}
+      },
       habitsList: (Array.isArray(p.habitsList) && p.habitsList.length)
         ? p.habitsList
         : DEFAULT_HABITS.map(function(h){ return {id:h.id, icon:h.icon, title:h.title, target:h.target, period:h.period}; }),
@@ -1449,6 +1507,7 @@
     updateStats();
     renderFood();
     renderHabits();
+    renderCycle();
   }
 
   function renderToday(){
@@ -2018,6 +2077,124 @@
       : found.n + " · " + found.k + " ккал на 100 г";
   }
 
+  // ---------- цикл ----------
+  var cycMonthOffset = 0;
+  var cycMode = "period";
+
+  function isoDate(d){ return iso(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+  function addDays(s, n){ var d = parseISO(s); d.setDate(d.getDate()+n); return isoDate(d); }
+  function cycP(){ return state.cycle.periods; }
+  function cycH(){ return state.cycle.hearts; }
+
+  function cycRuns(){
+    var keys = Object.keys(cycP()).sort(), runs = [], cur = null;
+    keys.forEach(function(k){
+      if(cur && daysBetween(cur.end, k) === 1){ cur.end = k; cur.len++; }
+      else { if(cur) runs.push(cur); cur = {start:k, end:k, len:1}; }
+    });
+    if(cur) runs.push(cur);
+    return runs;
+  }
+
+  function cycStats(){
+    var runs = cycRuns();
+    if(!runs.length) return null;
+    var starts = runs.map(function(r){ return r.start; });
+    var gaps = [];
+    for(var i=1;i<starts.length;i++) gaps.push(daysBetween(starts[i-1], starts[i]));
+    gaps = gaps.slice(-6);
+    var avgCycle = gaps.length ? Math.round(gaps.reduce(function(a,b){ return a+b; },0)/gaps.length) : 28;
+    if(avgCycle < 18 || avgCycle > 60) avgCycle = 28;
+    var avgPeriod = Math.round(runs.reduce(function(s,r){ return s + r.len; },0)/runs.length) || 4;
+    var last = runs[runs.length-1];
+    var nextStart = addDays(last.start, avgCycle);
+    return {
+      runs: runs, avgCycle: avgCycle, avgPeriod: avgPeriod, last: last,
+      nextStart: nextStart, nextEnd: addDays(nextStart, Math.max(0, avgPeriod-1)),
+      dayNow: daysBetween(last.start, today) + 1, cyclesCount: gaps.length
+    };
+  }
+
+  function fmtShort(s){ var d = parseISO(s); return d.getDate()+" "+MONTHS_GEN[d.getMonth()]; }
+
+  function renderCycle(){
+    var base = parseISO(today);
+    var view = new Date(base.getFullYear(), base.getMonth() + cycMonthOffset, 1);
+    var y = view.getFullYear(), m = view.getMonth();
+    document.getElementById("cycMonth").textContent = MONTHS[m] + " " + y;
+
+    var stats = cycStats();
+    var predicted = {};
+    if(stats){
+      for(var p=0;p<stats.avgPeriod;p++) predicted[addDays(stats.nextStart, p)] = true;
+    }
+
+    var grid = document.getElementById("cycGrid");
+    grid.innerHTML = "";
+    var offset = (new Date(y, m, 1).getDay() + 6) % 7;
+    var start = new Date(y, m, 1 - offset);
+
+    for(var i=0;i<42;i++){
+      var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      var k = isoDate(d);
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "cyc-day";
+      b.dataset.date = k;
+      if(d.getMonth() !== m) b.classList.add("other");
+      if(k === today) b.classList.add("today");
+      if(cycP()[k]) b.classList.add("period");
+      if(predicted[k] && !cycP()[k]) b.classList.add("predicted");
+      b.innerHTML = "<span>"+d.getDate()+"</span>" + (cycH()[k] ? "<span class='hrt'>♥</span>" : "");
+      grid.appendChild(b);
+    }
+
+    var box = document.getElementById("cycStats");
+    if(!stats){
+      box.innerHTML = '<p class="hint" style="margin:0">Пока пусто. Отметь первый день месячных — и здесь появятся длина цикла и прогноз следующего.</p>';
+      return;
+    }
+
+    var heartsInMonth = 0;
+    Object.keys(cycH()).forEach(function(k){
+      var dd = parseISO(k);
+      if(dd.getFullYear() === y && dd.getMonth() === m) heartsInMonth++;
+    });
+
+    var rows = [
+      ["Последние месячные", fmtShort(stats.last.start) + " — " + fmtShort(stats.last.end) + " · " + stats.last.len + " дн."],
+      ["Сегодня", stats.dayNow + "-й день цикла"],
+      ["Средняя длина цикла", stats.avgCycle + " дн." + (stats.cyclesCount ? " · по " + stats.cyclesCount + " циклам" : "")],
+      ["Средняя длительность", stats.avgPeriod + " дн."],
+      ["Следующие ожидаются", fmtShort(stats.nextStart) + " — " + fmtShort(stats.nextEnd)],
+      ["♥ в этом месяце", String(heartsInMonth)]
+    ];
+    box.innerHTML = rows.map(function(r){
+      return '<div class="cyc-row"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>';
+    }).join("");
+  }
+
+  document.getElementById("cycGrid").addEventListener("click", function(e){
+    var b = e.target.closest(".cyc-day");
+    if(!b || b.classList.contains("other")) return;
+    var k = b.dataset.date;
+    var store = cycMode === "period" ? state.cycle.periods : state.cycle.hearts;
+    if(store[k]) delete store[k]; else store[k] = true;
+    save();
+    renderCycle();
+  });
+
+  document.getElementById("cycModes").addEventListener("click", function(e){
+    var b = e.target.closest(".chip");
+    if(!b) return;
+    cycMode = b.getAttribute("data-mode");
+    this.querySelectorAll(".chip").forEach(function(x){ x.classList.toggle("on", x === b); });
+  });
+
+  document.getElementById("cycPrev").addEventListener("click", function(){ cycMonthOffset--; renderCycle(); });
+  document.getElementById("cycNext").addEventListener("click", function(){ cycMonthOffset++; renderCycle(); });
+  document.getElementById("cycToday").addEventListener("click", function(){ cycMonthOffset = 0; renderCycle(); });
+
   // ---------- привычки ----------
   function habitCount(id, d){ var row = state.habitLog[d]; return (row && row[id]) || 0; }
 
@@ -2305,7 +2482,7 @@
 
   // ---------- вкладки ----------
   var tabButtons = Array.prototype.slice.call(document.querySelectorAll(".tab"));
-  var views = { tracker: document.getElementById("view-tracker"), habits: document.getElementById("view-habits"), tasks: document.getElementById("view-tasks"), ex: document.getElementById("view-ex"), food: document.getElementById("view-food") };
+  var views = { tracker: document.getElementById("view-tracker"), habits: document.getElementById("view-habits"), tasks: document.getElementById("view-tasks"), cycle: document.getElementById("view-cycle"), ex: document.getElementById("view-ex"), food: document.getElementById("view-food") };
 
   function showView(name, updateUrl){
     if(!views[name]) name = "tracker";
@@ -2338,6 +2515,7 @@
   updateStats();
   renderFood();
   renderHabits();
+  renderCycle();
   initExerciseFilters();
   showView((location.hash || "").slice(1), false);
 
@@ -2357,7 +2535,8 @@
     today: function(){ return today; },
     total: function(){ return dateList(CFG.start, CFG.end).length; },
     refreshDay: refreshDay,
-    showView: showView
+    showView: showView,
+    renderCycle: renderCycle
   };
 })();
 </script>
